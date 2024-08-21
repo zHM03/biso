@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import commands as cmd
 import events
 import music
-import asyncio
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -18,7 +17,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Events ve komutlar burada yükleniyor
 events.setup(bot)
 cmd.setup(bot)
-music.setup(bot)
 
 @bot.event
 async def on_ready():
