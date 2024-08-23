@@ -6,9 +6,6 @@ import commands as cmd
 import events
 import music
 
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -25,5 +22,8 @@ async def on_ready():
         await bot.load_extension('music')
     except Exception as e:
         print(f"Extension yüklenirken hata oluştu: {e}")
+        
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot.run(TOKEN)
