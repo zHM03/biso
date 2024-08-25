@@ -8,6 +8,8 @@ import music
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.voice_states = True
+intents.guilds = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -22,6 +24,11 @@ async def on_ready():
         await bot.load_extension('music')
     except Exception as e:
         print(f"Extension yüklenirken hata oluştu: {e}")
+    try:
+        await bot.load_extension('visualize')
+    except Exception as e:
+        print(f"Extension yüklenirken hata oluştu: {e}")
+        
         
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
