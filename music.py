@@ -22,7 +22,7 @@ class Music(commands.Cog):
 
         # yt-dlp ayarları
         self.ytdl_opts = {
-            'format': 'bestaudio[abr<=192k]/bestaudio/best',  # Ses kalitesini 192 kbps olarak ayarlar
+            'format': 'bestaudio[abr<=128k]/bestaudio/best',  # Ses kalitesini 128 kbps olarak ayarlar
             'quiet': True,
             'extractaudio': True,
             'audioformat': 'mp3',
@@ -30,7 +30,7 @@ class Music(commands.Cog):
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',  # MP3 kalitesini 192 kbps olarak ayarlar
+                'preferredquality': '128',  # MP3 kalitesini 128 kbps olarak ayarlar
             }],
         }
         
@@ -46,7 +46,7 @@ class Music(commands.Cog):
             song = self.queue.pop(0)
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                'options': '-vn -b:a 192k'  # Ses kalitesini 192 kbps olarak ayarlar
+                'options': '-vn -b:a 128k'  # Ses kalitesini 128 kbps olarak ayarlar
             }
             try:
                 ffmpeg_audio = discord.FFmpegPCMAudio(song['url'], **ffmpeg_options)
