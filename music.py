@@ -30,7 +30,7 @@ class Music(commands.Cog):
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',
+                'preferredquality': '160',
             }],
         }
         
