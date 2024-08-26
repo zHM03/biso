@@ -22,7 +22,7 @@ class Music(commands.Cog):
 
         # yt-dlp ayarları
         self.ytdl_opts = {
-            'format': 'bestaudio/best',
+            'format': 'bestaudio[abr<=192k]/bestaudio/best',  # Ses kalitesini 192 kbps olarak ayarlar
             'quiet': True,
             'extractaudio': True,
             'audioformat': 'mp3',
@@ -30,15 +30,14 @@ class Music(commands.Cog):
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '160',
+                'preferredquality': '192',  # MP3 kalitesini 192 kbps olarak ayarlar
             }],
         }
         
     async def connect_to_voice_channel(self, ctx, channel):
-        if channel.id not in self.voice_clients or not self.voice_clients[channel.id].is_connected():
-            voice_client = await channel.connect()
-            self.voice_clients[channel.id] = voice_client
-        return self.voice_clients[channel.id]
+        if not self.voice_client or not self.voice_client.is_connected():
+            self.voice_client = await channel.connect()
+        return self.voice_client
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
@@ -47,7 +46,7 @@ class Music(commands.Cog):
             song = self.queue.pop(0)
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                'options': '-vn'
+                'options': '-vn -b:a 192k'  # Ses kalitesini 192 kbps olarak ayarlar
             }
             try:
                 ffmpeg_audio = discord.FFmpegPCMAudio(song['url'], **ffmpeg_options)
@@ -180,4 +179,4 @@ class Music(commands.Cog):
             await ctx.send("Şu anda duraklatılmış bir şarkı yok.")
 
 async def setup(bot):
-    await bot.add_cog(Music(bot)) 
+    await bot.add_cog(Music(bot))
