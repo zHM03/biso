@@ -33,6 +33,12 @@ class Music(commands.Cog):
                 'preferredquality': '256',
             }],
         }
+        
+    async def connect_to_voice_channel(self, ctx, channel):
+        if channel.id not in self.voice_clients or not self.voice_clients[channel.id].is_connected():
+            voice_client = await channel.connect()
+            self.voice_clients[channel.id] = voice_client
+        return self.voice_clients[channel.id]
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
@@ -89,8 +95,10 @@ class Music(commands.Cog):
                 if "youtube.com/watch" in link or "youtu.be" in link:
                     # Eğer doğrudan YouTube URL'si ise, doğrudan bilgi al
                     info = ydl.extract_info(link, download=False)
+                    await self.play_song(ctx, info['url'], info['title'])
+
                 elif "spotify.com/track" in link:
-                    # Eğer Spotify URL'si ise, Spotify'tan şarkı bilgilerini al
+                    # Eğer Spotify parça URL'si ise, Spotify'tan şarkı bilgilerini al
                     track_id = link.split('/')[-1].split('?')[0]
                     track_info = sp.track(track_id)
                     track_name = track_info['name']
@@ -100,22 +108,34 @@ class Music(commands.Cog):
                     # Arama terimi ile bilgi al
                     search_query = f"ytsearch:{search_query}"
                     info = ydl.extract_info(search_query, download=False)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                    await self.play_song(ctx, info['url'], info['title'])
+
+                elif "spotify.com/playlist" in link:
+                    # Eğer Spotify çalma listesi URL'si ise, listedeki tüm şarkıları ekle
+                    playlist_id = link.split('/')[-1].split('?')[0]
+                    playlist_info = sp.playlist(playlist_id)
+                    for item in playlist_info['tracks']['items']:
+                        track = item['track']
+                        track_name = track['name']
+                        artist_name = track['artists'][0]['name']
+                        search_query = f"{track_name} {artist_name}"
+                        
+                        # Arama terimi ile bilgi al
+                        search_query = f"ytsearch:{search_query}"
+                        info = ydl.extract_info(search_query, download=False)
+                        if 'entries' in info and len(info['entries']) > 0:
+                            info = info['entries'][0]
+                        await self.play_song(ctx, info['url'], info['title'])
+
                 else:
                     # Arama terimi ile bilgi al
                     search_query = f"ytsearch:{link}"
                     info = ydl.extract_info(search_query, download=False)
-                
-                if 'entries' in info and len(info['entries']) > 0:
-                    info = info['entries'][0]
-                elif 'url' in info:
-                    info = info
-                else:
-                    raise ValueError("No entries found in YouTube search results.")
-                
-                audio_url = info['url']
-                song_title = info['title']
-
-                await self.play_song(ctx, audio_url, song_title)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                    await self.play_song(ctx, info['url'], info['title'])
 
             except Exception as e:
                 print(f"Error extracting audio: {e}")
@@ -160,4 +180,4 @@ class Music(commands.Cog):
             await ctx.send("Şu anda duraklatılmış bir şarkı yok.")
 
 async def setup(bot):
-    await bot.add_cog(Music(bot))
+    await bot.add_cog(Music(bot)) 
