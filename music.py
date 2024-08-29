@@ -112,7 +112,7 @@ class Music(commands.Cog):
         start_index = (page - 1) * self.items_per_page
         end_index = min(start_index + self.items_per_page, len(self.queue))
 
-        current_y = songs_text_y + songs_text_height + 20
+        current_y = songs_text_y + songs_text_height + 40
         
         for index, song in enumerate(self.queue[start_index:end_index]):
             song_text = f"{start_index + index + 1}. {song['title']}"
