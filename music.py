@@ -95,14 +95,15 @@ class Music(commands.Cog):
         background = Image.alpha_composite(background, overlay)
         
         try:
-            font = ImageFont.truetype("assets/pirata.ttf", 24)
+            title_font = ImageFont.truetype("assets/pirata.ttf", 36)
+            Song_font = ImageFont.truetype("assets/pirata.ttf", 24)
         except IOError:
             font = ImageFont.load_default()
             
         draw = ImageDraw.Draw(background)
 
         songs_text = "SONGS\n"
-        text_bbox = draw.textbbox((0, 0), songs_text, font=font)
+        text_bbox = draw.textbbox((0, 0), songs_text, font=title_font)
         songs_text_width = text_bbox[2] - text_bbox[0]
         songs_text_height = text_bbox[3] - text_bbox[1]
         songs_text_x = (background.width - songs_text_width) // 2
