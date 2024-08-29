@@ -95,8 +95,8 @@ class Music(commands.Cog):
         background = Image.alpha_composite(background, overlay)
         
         try:
-            title_font = ImageFont.truetype("assets/pirata.ttf", 36)
-            song_font = ImageFont.truetype("assets/pirata.ttf", 24)
+            title_font = ImageFont.truetype("assets/pirata.ttf", 50)
+            song_font = ImageFont.truetype("assets/pirata.ttf", 30)
         except IOError:
             title_font = ImageFont.load_default()
             song_font = ImageFont.load_default()
