@@ -82,7 +82,7 @@ class Music(commands.Cog):
         """Kuyruğu görsel olarak gönderir"""
         num_pages = (len(self.queue) + self.items_per_page - 1) // self.items_per_page
 
-        background_path = r'C:\Users\Hisham\Desktop\Projeler\DC bot\Biso\chopper.jpg'
+        background_path = os.getenv('BACKGROUND_IMAGE_PATH', 'assets/chopper.jpg')
         background = Image.open(background_path).convert('RGBA')
         img_width, img_height = background.size
         
