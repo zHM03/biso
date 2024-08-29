@@ -123,7 +123,7 @@ class Music(commands.Cog):
             song_text_height = text_bbox[3] - text_bbox[1]
             table_width = song_text_width + 40
             table_height = song_text_height + 20
-            table_x = 20
+            table_x = (background.width - table_width) 
             table_y = current_y
             
             # Şeffaf tabloyu oluştur
