@@ -109,7 +109,7 @@ class Music(commands.Cog):
         songs_text_height = text_bbox[3] - text_bbox[1]
         songs_text_x = (background.width - songs_text_width) // 2
         songs_text_y = 10  # Yukarıdan 10 piksel aşağıda
-        draw.text((songs_text_x, songs_text_y), songs_text, font=font, fill=(255, 255, 255))
+        draw.text((songs_text_x, songs_text_y), songs_text, font=title_font, fill=(255, 255, 255))
         
         start_index = (page - 1) * self.items_per_page
         end_index = min(start_index + self.items_per_page, len(self.queue))
@@ -120,7 +120,7 @@ class Music(commands.Cog):
             song_text = f"{start_index + index + 1}. {song['title']}"
             
             # Metin boyutunu hesapla
-            text_bbox = draw.textbbox((0, 0), song_text, font=font)
+            text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
             song_text_width = text_bbox[2] - text_bbox[0]
             song_text_height = text_bbox[3] - text_bbox[1]
             table_width = song_text_width + 40
@@ -134,7 +134,7 @@ class Music(commands.Cog):
             shadow_offset = 2
             shadow_color = (0, 0, 0, 128)
             draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=font, fill=shadow_color)
-            draw_table.text((10, 10), song_text, font=font, fill=(255, 255, 255))
+            draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
 
             # Tabloyu arka plana ekle
             background.paste(table, (table_x, table_y), table)
