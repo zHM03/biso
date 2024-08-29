@@ -37,6 +37,21 @@ class Music(commands.Cog):
         }
         self.last_message = None
 
+    async def play_song(self, ctx, audio_url, song_title):
+        """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
+        song = {
+            'url': audio_url,
+            'title': song_title,
+            'channel_id': ctx.channel.id
+        }
+        self.queue.append(song)
+        await self.send_queue(ctx)  # Kuyruğu güncelle
+
+        if not self.is_playing:
+            if not self.voice_client or not self.voice_client.is_connected():
+                self.voice_client = await ctx.author.voice.channel.connect()
+            await self.play_next()
+
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
         if self.queue:
@@ -62,21 +77,6 @@ class Music(commands.Cog):
                 await self.play_next()
         else:
             self.is_playing = False
-
-    async def play_song(self, ctx, audio_url, song_title):
-        """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
-        song = {
-            'url': audio_url,
-            'title': song_title,
-            'channel_id': ctx.channel.id
-        }
-        self.queue.append(song)
-        await self.send_queue(ctx)  # Kuyruğu güncelle
-
-        if not self.is_playing:
-            if not self.voice_client or not self.voice_client.is_connected():
-                self.voice_client = await ctx.author.voice.channel.connect()
-            await self.play_next()
 
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
