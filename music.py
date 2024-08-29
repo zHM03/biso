@@ -95,7 +95,7 @@ class Music(commands.Cog):
         background = Image.alpha_composite(background, overlay)
         
         try:
-            font = ImageFont.truetype("assets/arial.ttf", 24)
+            font = ImageFont.truetype("assets/BREAKSONG.ttf", 24)
         except IOError:
             font = ImageFont.load_default()
             
