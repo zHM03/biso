@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import commands as cmd
 import events
 import music
-import visualize
 
 intents = discord.Intents.default()
 intents.message_content = True
