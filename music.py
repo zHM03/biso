@@ -112,7 +112,7 @@ class Music(commands.Cog):
         start_index = (page - 1) * self.items_per_page
         end_index = min(start_index + self.items_per_page, len(self.queue))
 
-        current_y = songs_text_y + songs_text_height + 40
+        current_y = songs_text_y + songs_text_height + 60
         
         for index, song in enumerate(self.queue[start_index:end_index]):
             song_text = f"{start_index + index + 1}. {song['title']}"
@@ -123,7 +123,7 @@ class Music(commands.Cog):
             song_text_height = text_bbox[3] - text_bbox[1]
             table_width = song_text_width + 40
             table_height = song_text_height + 20
-            table_x = (background.width - table_width) 
+            table_x = + 20
             table_y = current_y
             
             # Şeffaf tabloyu oluştur
