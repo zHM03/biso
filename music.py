@@ -24,7 +24,7 @@ class Music(commands.Cog):
         self.is_playing = False
         self.items_per_page = 5
         self.ytdl_opts = {
-            'format': 'bestaudio[abr<=128k]/bestaudio/best',  # Ses kalitesini 128 kbps olarak ayarlar
+            'format': 'bestaudio/best',
             'quiet': True,
             'extractaudio': True,
             'audioformat': 'mp3',
@@ -32,18 +32,10 @@ class Music(commands.Cog):
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '128',  # MP3 kalitesini 128 kbps olarak ayarlar
+                'preferredquality': '256',
             }],
         }
-<<<<<<< HEAD
         self.last_message = None
-=======
-        
-    async def connect_to_voice_channel(self, ctx, channel):
-        if not self.voice_client or not self.voice_client.is_connected():
-            self.voice_client = await channel.connect()
-        return self.voice_client
->>>>>>> 74ae760bee51d3f51e53d3ff2c970826f0fd2ccd
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
@@ -52,7 +44,7 @@ class Music(commands.Cog):
             song = self.queue.pop(0)
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                'options': '-vn -b:a 128k'  # Ses kalitesini 128 kbps olarak ayarlar
+                'options': '-vn'
             }
             try:
                 ffmpeg_audio = discord.FFmpegPCMAudio(song['url'], **ffmpeg_options)
@@ -217,10 +209,6 @@ class Music(commands.Cog):
                     await self.play_song(ctx, info['url'], info['title'])
 
                 elif "spotify.com/track" in link:
-<<<<<<< HEAD
-=======
-                    # Eğer Spotify parça URL'si ise, Spotify'tan şarkı bilgilerini al
->>>>>>> 74ae760bee51d3f51e53d3ff2c970826f0fd2ccd
                     track_id = link.split('/')[-1].split('?')[0]
                     track_info = sp.track(track_id)
                     track_name = track_info['name']
@@ -233,10 +221,6 @@ class Music(commands.Cog):
                     await self.play_song(ctx, info['url'], info['title'])
 
                 elif "spotify.com/playlist" in link:
-<<<<<<< HEAD
-=======
-                    # Eğer Spotify çalma listesi URL'si ise, listedeki tüm şarkıları ekle
->>>>>>> 74ae760bee51d3f51e53d3ff2c970826f0fd2ccd
                     playlist_id = link.split('/')[-1].split('?')[0]
                     playlist_info = sp.playlist(playlist_id)
                     for item in playlist_info['tracks']['items']:
@@ -244,11 +228,6 @@ class Music(commands.Cog):
                         track_name = track['name']
                         artist_name = track['artists'][0]['name']
                         search_query = f"{track_name} {artist_name}"
-<<<<<<< HEAD
-=======
-                        
-                        # Arama terimi ile bilgi al
->>>>>>> 74ae760bee51d3f51e53d3ff2c970826f0fd2ccd
                         search_query = f"ytsearch:{search_query}"
                         info = ydl.extract_info(search_query, download=False)
                         if 'entries' in info and len(info['entries']) > 0:
