@@ -133,7 +133,7 @@ class Music(commands.Cog):
             draw_table = ImageDraw.Draw(table)
             shadow_offset = 2
             shadow_color = (0, 0, 0, 128)
-            draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=font, fill=shadow_color)
+            draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=song_font, fill=shadow_color)
             draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
 
             # Tabloyu arka plana ekle
