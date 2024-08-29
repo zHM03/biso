@@ -51,6 +51,9 @@ class Music(commands.Cog):
                 if self.voice_client.is_playing():
                     self.voice_client.stop()
                 self.voice_client.play(ffmpeg_audio, after=lambda e: self.bot.loop.create_task(self.play_next()))
+                # Bu satırı kaldırdık, şarkı ismi mesajını göndermeyecek
+                # channel = self.bot.get_channel(song['channel_id'])
+                # await channel.send(f"🎶 {song['title']} 🎶 çalıyor!")
             except Exception as e:
                 print(f"Playback error: {e}")
                 channel = self.bot.get_channel(song['channel_id'])
@@ -114,6 +117,7 @@ class Music(commands.Cog):
         for index, song in enumerate(self.queue[start_index:end_index]):
             song_text = f"{start_index + index + 1}. {song['title']}"
             
+            # Metin boyutunu hesapla
             text_bbox = draw.textbbox((0, 0), song_text, font=font)
             song_text_width = text_bbox[2] - text_bbox[0]
             song_text_height = text_bbox[3] - text_bbox[1]
@@ -122,6 +126,7 @@ class Music(commands.Cog):
             table_x = 20
             table_y = current_y
             
+            # Şeffaf tabloyu oluştur
             table = Image.new('RGBA', (table_width, table_height), (0, 0, 0, 150))
             draw_table = ImageDraw.Draw(table)
             shadow_offset = 2
@@ -129,6 +134,7 @@ class Music(commands.Cog):
             draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=font, fill=shadow_color)
             draw_table.text((10, 10), song_text, font=font, fill=(255, 255, 255))
 
+            # Tabloyu arka plana ekle
             background.paste(table, (table_x, table_y), table)
             
             current_y += table_height + 10
@@ -144,8 +150,10 @@ class Music(commands.Cog):
                 pass
 
         new_message = await ctx.send(file=discord.File(fp=buffer, filename='queue.png'))
+
         self.last_message = new_message
 
+        # Butonları oluştur ve görseli gönder
         view = self.QueueView(self.bot, new_message, page=page, num_pages=num_pages)
         await new_message.edit(view=view)
 
@@ -218,7 +226,7 @@ class Music(commands.Cog):
                     for item in playlist_info['tracks']['items']:
                         track = item['track']
                         track_name = track['name']
-                        artist_name = track['artists'][artist_name = track['artists'][0]['name']
+                        artist_name = track['artists'][0]['name']
                         search_query = f"{track_name} {artist_name}"
                         search_query = f"ytsearch:{search_query}"
                         info = ydl.extract_info(search_query, download=False)
@@ -227,54 +235,47 @@ class Music(commands.Cog):
                         await self.play_song(ctx, info['url'], info['title'])
 
                 else:
-                    await ctx.send("Geçersiz bağlantı. Lütfen bir YouTube veya Spotify bağlantısı girin.")
-                    return
+                    search_query = f"ytsearch:{link}"
+                    info = ydl.extract_info(search_query, download=False)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                    await self.play_song(ctx, info['url'], info['title'])
 
             except Exception as e:
-                await ctx.send(f"Şarkıyı eklerken bir hata oluştu: {e}")
+                print(f"Error extracting audio: {e}")
+                await ctx.send("Şarkıyı çalamadım.")
 
     @commands.command()
-    async def show_queue(self, ctx, page: int = 1):
-        """Kuyruğu göster"""
-        if not self.queue:
-            await ctx.send("Kuyruk boş.")
-        else:
-            await self.send_queue(ctx, page=page)
-
-    @commands.command()
-    async def skip(self, ctx):
-        """Mevcut şarkıyı atla"""
+    async def n(self, ctx):
+        """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.stop()
-            await ctx.send("Şarkı atlandı.")
-        else:
-            await ctx.send("Şu anda çalan bir şarkı yok.")
+            # Mesaj göndermeyi kaldırdık
 
     @commands.command()
-    async def leave(self, ctx):
-        """Ses kanalından ayrıl"""
+    async def s(self, ctx):
+        """Şarkıyı duraklatır"""
+        if self.voice_client and self.voice_client.is_playing():
+            self.voice_client.pause()
+            # Mesaj göndermeyi kaldırdık
+
+    @commands.command()
+    async def r(self, ctx):
+        """Şarkıyı devam ettirir"""
+        if self.voice_client and self.voice_client.is_paused():
+            self.voice_client.resume()
+            # Mesaj göndermeyi kaldırdık
+
+    @commands.command()
+    async def l(self, ctx):
+        """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
             await self.voice_client.disconnect()
-            self.voice_client = None
             self.queue.clear()
             self.is_playing = False
-            await ctx.send("Ses kanalından ayrıldım.")
+            await ctx.send("Sesli kanaldan ayrıldım.")
         else:
-            await ctx.send("Zaten bir ses kanalında değilim.")
+            await ctx.send("Bot bir sesli kanalda değil.")
 
-    @commands.command()
-    async def clear_queue(self, ctx):
-        """Kuyruğu temizle"""
-        self.queue.clear()
-        await ctx.send("Kuyruk temizlendi.")
-        if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.stop()
-
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-bot.add_cog(Music(bot))
-
-@bot.event
-async def on_ready():
-    print(f"Giriş yapıldı: {bot.user.name}")
-
-bot.run(os.getenv('DISCORD_TOKEN'))
+async def setup(bot):
+    await bot.add_cog(Music(bot))
