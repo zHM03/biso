@@ -96,9 +96,10 @@ class Music(commands.Cog):
         
         try:
             title_font = ImageFont.truetype("assets/pirata.ttf", 36)
-            Song_font = ImageFont.truetype("assets/pirata.ttf", 24)
+            song_font = ImageFont.truetype("assets/pirata.ttf", 24)
         except IOError:
-            font = ImageFont.load_default()
+            title_font = ImageFont.load_default()
+            song_font = ImageFont.load_default()
             
         draw = ImageDraw.Draw(background)
 
