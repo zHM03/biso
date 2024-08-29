@@ -161,7 +161,7 @@ class Music(commands.Cog):
 
     class QueueView(View):
         def __init__(self, bot, message, page=1, num_pages=1):
-            super().__init__(timeout=60)
+            super().__init__(timeout=360)
             self.bot = bot
             self.message = message
             self.page = page
