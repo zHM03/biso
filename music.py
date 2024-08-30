@@ -37,8 +37,7 @@ class Music(commands.Cog):
             }],
         }
         self.last_message = None
-
-  async def cleanup_ffmpeg_processes():
+    async def cleanup_ffmpeg_processes(self):
         os.system("pkill -f ffmpeg") 
 
     async def play_song(self, ctx, audio_url, song_title):
