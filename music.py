@@ -54,7 +54,7 @@ class Music(commands.Cog):
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
-        if len(self.queue) > 1
+        if len(self.queue) > 1:
         if self.queue:
             self.is_playing = True
             song = self.queue[1] 
