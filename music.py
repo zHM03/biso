@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import io
 from PIL import Image, ImageDraw, ImageFont
+import cleanup
 
 load_dotenv()
 
@@ -39,7 +40,8 @@ class Music(commands.Cog):
         self.last_message = None
 
     async def cleanup_ffmpeg_processes(self):
-        os.system("pkill -f ffmpeg") 
+        cleanup.terminate_ffmpeg_processes() 
+
 
     async def play_song(self, ctx, audio_url, song_title):
         """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
