@@ -246,8 +246,7 @@ class Music(commands.Cog):
                 await ctx.send (f"bir hata var {e}") 
                 return 
                 if message_to_react:
-                    await
-                    message_to_react.add_reaction('✅')
+                    await message_to_react.add_reaction('✅')
 
                 else:
                     search_query = f"ytsearch:{link}"
