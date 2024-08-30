@@ -52,31 +52,32 @@ class Music(commands.Cog):
                 self.voice_client = await ctx.author.voice.channel.connect()
             await self.play_next()
 
-    async def play_next(self):
-        """Bir sonraki şarkıyı çal"""
-        if len(self.queue) > 0:
-            self.is_playing = True
-            if len(self.queue) > 1:
-                song = self.queue[1]
+async def play_next(self):
+    """Bir sonraki şarkıyı çal"""
+    if len(self.queue) > 0:  # Kuyrukta şarkı varsa
+        self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
+        
+        if len(self.queue) > 1:
+            song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
+        else:
+            song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
 
-            else:
-                song = self.queue [0]
+        ffmpeg_options = {
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'options': '-vn'
+        }
 
-            ffmpeg_options = {
-                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                'options': '-vn'
-            }
-            try:
-              self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e:
-             self.bot.loop.create_task(self.play_next())) 
-except Exception as e:
-   print(f"Playback error: {e}") 
-                               channel = self.bot.get_channel (song['channel_id']
-            await channel.send ("Şarkıyı çalamadım")
-          self.is_playing=False 
-          await self.play_next()
-                    else:
-                        self.is_playing = False
+        try:
+            # Ses dosyasını oynat
+            self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+        except Exception as e:  # Hata durumunda çalışacak blok
+            print(f"Playback error: {e}")
+            channel = self.bot.get_channel(song['channel_id'])
+            await channel.send("Şarkıyı çalamadım.")
+            self.is_playing = False
+            await self.play_next()
+    else:
+        self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
 
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
