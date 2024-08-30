@@ -37,6 +37,7 @@ class Music(commands.Cog):
             }],
         }
         self.last_message = None
+
     async def cleanup_ffmpeg_processes(self):
         os.system("pkill -f ffmpeg") 
 
@@ -82,6 +83,7 @@ class Music(commands.Cog):
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             await self.voice_client.disconnect()
+            await self.cleanup_ffmpeg_processes() 
 
 
     async def send_queue(self, ctx, page=1):
@@ -283,7 +285,7 @@ class Music(commands.Cog):
             await self.voice_client.disconnect()
             self.queue.clear()
             self.is_playing = False
-            await cleanup_ffmpeg_processes() 
+            await self.cleanup_ffmpeg_processes() 
             await ctx.send("Sesli kanaldan ayrıldım.")
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
