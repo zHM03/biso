@@ -65,19 +65,23 @@ class Music(commands.Cog):
                 ffmpeg_audio = discord.FFmpegPCMAudio(song['url'], **ffmpeg_options)
                 if self.voice_client.is_playing():
                     self.voice_client.stop()
-                self.voice_client.play(ffmpeg_audio, after=lambda e: self.bot.loop.create_task(self.play_next()))
-                # Bu satırı kaldırdık, şarkı ismi mesajını göndermeyecek
-                # channel = self.bot.get_channel(song['channel_id'])
-                # await channel.send(f"🎶 {song['title']} 🎶 çalıyor!")
+                self.voice_client.play(ffmpeg_audio, after=lambda e: self.bot.loop.create_task(self.on_song_end()))
             except Exception as e:
                 print(f"Playback error: {e}")
                 channel = self.bot.get_channel(song['channel_id'])
                 await channel.send("Şarkıyı çalamadım.")
                 self.is_playing = False
                 await self.play_next()
+
+    async def on_song_end(self):
+        """Bir şarkı sona erdiğinde çağrılır"""
+        if self.queue:
+            # Kuyruğun ilk şarkısını sadece çalındıktan sonra kontrol et
+            self.queue.append(self.queue.pop(0))  # Çalınan şarkıyı kuyruğun sonuna ekle
+            await self.play_next()
         else:
             self.is_playing = False
-
+            
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
         num_pages = (len(self.queue) + self.items_per_page - 1) // self.items_per_page
