@@ -52,7 +52,7 @@ class Music(commands.Cog):
                 self.voice_client = await ctx.author.voice.channel.connect()
             await self.play_next()
 
-async def play_next(self):
+    async def play_next(self):
     """Bir sonraki şarkıyı çal"""
     if len(self.queue) > 0:  # Kuyrukta şarkı varsa
         self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
