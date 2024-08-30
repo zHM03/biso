@@ -53,23 +53,23 @@ class Music(commands.Cog):
             await self.play_next()
 
     async def play_next(self):
-    """Bir sonraki şarkıyı çal"""
-    if len(self.queue) > 0:  # Kuyrukta şarkı varsa
-        self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
+        """Bir sonraki şarkıyı çal"""
+        if len(self.queue) > 0:  # Kuyrukta şarkı varsa
+            self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
         
-        if len(self.queue) > 1:
-            song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
-        else:
-            song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
+            if len(self.queue) > 1:
+                song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
+            else:
+                song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
 
         ffmpeg_options = {
             'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
             'options': '-vn'
         }
 
-        try:
+            try:
             # Ses dosyasını oynat
-            self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+                  self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
         except Exception as e:  # Hata durumunda çalışacak blok
             print(f"Playback error: {e}")
             channel = self.bot.get_channel(song['channel_id'])
