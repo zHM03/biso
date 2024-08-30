@@ -69,7 +69,7 @@ class Music(commands.Cog):
 
             try:
             # Ses dosyasını oynat
-                  self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
         except Exception as e:  # Hata durumunda çalışacak blok
             print(f"Playback error: {e}")
             channel = self.bot.get_channel(song['channel_id'])
