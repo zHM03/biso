@@ -78,6 +78,8 @@ class Music(commands.Cog):
                 await self.play_next()
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
+            await self.voice_client.disconnect()
+
 
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
