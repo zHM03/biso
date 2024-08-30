@@ -11,7 +11,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
 
-# Spotify API ayarları
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=os.getenv('SPOTIPY_CLIENT_ID'),
     client_secret=os.getenv('SPOTIPY_CLIENT_SECRET')
@@ -57,7 +56,7 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if self.queue:
             self.is_playing = True
-            song = self.queue[0]
+            song = self.queue[0] 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
@@ -67,7 +66,9 @@ class Music(commands.Cog):
                 if self.voice_client.is_playing():
                     self.voice_client.stop()
                 self.voice_client.play(ffmpeg_audio, after=lambda e: self.bot.loop.create_task(self.play_next()))
-                # Şarkı ismi mesajını göndermeyi kaldırdık
+                # Bu satırı kaldırdık, şarkı ismi mesajını göndermeyecek
+                # channel = self.bot.get_channel(song['channel_id'])
+                # await channel.send(f"🎶 {song['title']} 🎶 çalıyor!")
             except Exception as e:
                 print(f"Playback error: {e}")
                 channel = self.bot.get_channel(song['channel_id'])
@@ -124,7 +125,7 @@ class Music(commands.Cog):
             song_text_height = text_bbox[3] - text_bbox[1]
             table_width = song_text_width + 40
             table_height = song_text_height + 20
-            table_x = 20
+            table_x = + 20
             table_y = current_y
             
             # Şeffaf tabloyu oluştur
@@ -200,7 +201,7 @@ class Music(commands.Cog):
             return
         
         if self.voice_client and self.voice_client.channel != ctx.author.voice.channel:
-            await ctx.send("Başka bir sesli kanalda çalıyorum.")
+            await ctx.send("Müsait değilim.")
             return
 
         with YoutubeDL(self.ytdl_opts) as ydl:
@@ -220,65 +221,63 @@ class Music(commands.Cog):
                     if 'entries' in info and len(info['entries']) > 0:
                         info = info['entries'][0]
                     await self.play_song(ctx, info['url'], info['title'])
+
+                elif "spotify.com/playlist" in link:
+                    playlist_id = link.split('/')[-1].split('?')[0]
+                    playlist_info = sp.playlist(playlist_id)
+                    for item in playlist_info['tracks']['items']:
+                        track = item['track']
+                        track_name = track['name']
+                        artist_name = track['artists'][0]['name']
+                        search_query = f"{track_name} {artist_name}"
+                        search_query = f"ytsearch:{search_query}"
+                        info = ydl.extract_info(search_query, download=False)
+                        if 'entries' in info and len(info['entries']) > 0:
+                            info = info['entries'][0]
+                        await self.play_song(ctx, info['url'], info['title'])
+
                 else:
-                    await ctx.send("Geçersiz bağlantı!")
+                    search_query = f"ytsearch:{link}"
+                    info = ydl.extract_info(search_query, download=False)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                    await self.play_song(ctx, info['url'], info['title'])
+
             except Exception as e:
-                print(f"Error: {e}")
-                await ctx.send("Bir hata oluştu, lütfen bağlantıyı kontrol edin.")
+                print(f"Error extracting audio: {e}")
+                await ctx.send("Şarkıyı çalamadım.")
 
     @commands.command()
-    async def skip(self, ctx):
-        """Şarkıyı geçer"""
-        if not self.voice_client or not self.voice_client.is_playing():
-            await ctx.send("Şu anda çalan bir şarkı yok.")
-            return
-
-        self.voice_client.stop()
-        await self.play_next()
-
-    @commands.command()
-    async def stop(self, ctx):
-        """Şarkıyı durdurur ve botu sesli kanaldan çıkarır"""
-        if not self.voice_client:
-            await ctx.send("Bot herhangi bir sesli kanalda değil.")
-            return
-
-        self.queue = []
-        self.is_playing = False
-        if self.voice_client.is_playing():
-            self.voice_client.stop()
-        await self.voice_client.disconnect()
-        self.voice_client = None
-
-    @commands.command()
-    async def queue(self, ctx):
-        """Şarkı kuyruğunu gösterir"""
-        if not self.queue:
-            await ctx.send("Kuyrukta şarkı yok.")
-            return
-
-        await self.send_queue(ctx)
-
-    @commands.command()
-    async def clear_queue(self, ctx):
-        """Kuyruğu temizler"""
-        self.queue = []
-        self.is_playing = False
+    async def n(self, ctx):
+        """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.stop()
-        await ctx.send("Kuyruk temizlendi.")
+            # Mesaj göndermeyi kaldırdık
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
-intents.guild_messages = True
-intents.voice_states = True
+    @commands.command()
+    async def s(self, ctx):
+        """Şarkıyı duraklatır"""
+        if self.voice_client and self.voice_client.is_playing():
+            self.voice_client.pause()
+            # Mesaj göndermeyi kaldırdık
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+    @commands.command()
+    async def r(self, ctx):
+        """Şarkıyı devam ettirir"""
+        if self.voice_client and self.voice_client.is_paused():
+            self.voice_client.resume()
+            # Mesaj göndermeyi kaldırdık
 
-@bot.event
-async def on_ready():
-    print(f'Bot olarak giriş yapıldı: {bot.user.name}')
+    @commands.command()
+    async def l(self, ctx):
+        """Botu sesli kanaldan çıkarır"""
+        if self.voice_client and self.voice_client.is_connected():
+            await self.voice_client.disconnect()
+            self.queue.clear()
+            self.is_playing = False
+            await ctx.send("Sesli kanaldan ayrıldım.")
+        else:
+            await ctx.send("Bot bir sesli kanalda değil.")
 
-bot.add_cog(Music(bot))
-bot.run(os.getenv('DISCORD_TOKEN'))
+async def setup(bot):
+    await bot.add_cog(Music(bot))
