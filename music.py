@@ -54,10 +54,14 @@ class Music(commands.Cog):
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
-        if len(self.queue) > 1:
-            if self.queue:
-                self.is_playing = True
-                song = self.queue[1] 
+        if len(self.queue) > 0:
+            self.is_playing = True
+            if len(self.queue) > 1:
+                song = self.queue[1]
+
+            else:
+                song = self.queue [0]
+
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
