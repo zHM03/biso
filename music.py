@@ -56,7 +56,7 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if self.queue:
             self.is_playing = True
-            song = self.queue.pop(0)
+            song = self.queue.(0)
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
