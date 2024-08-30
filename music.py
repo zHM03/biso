@@ -4,6 +4,7 @@ from discord.ui import View, Button
 from yt_dlp import YoutubeDL
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import signal
 import os
 from dotenv import load_dotenv
 import io
@@ -196,6 +197,9 @@ class Music(commands.Cog):
             await cog.send_queue(interaction.channel, page=self.page)
             await interaction.response.defer()
 
+    async def cleanup_ffmpeg_processes():
+        os.system("pkill -f ffmpeg") 
+
     @commands.command()
     async def p(self, ctx, *, link):
         """YouTube veya Spotify bağlantısından şarkı ekler"""
@@ -275,9 +279,12 @@ class Music(commands.Cog):
     async def l(self, ctx):
         """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
+            if self.voice_client.is_playing():
+                self.voice_client.stop() 
             await self.voice_client.disconnect()
             self.queue.clear()
             self.is_playing = False
+            await cleanup_ffmpeg_processes() 
             await ctx.send("Sesli kanaldan ayrıldım.")
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
