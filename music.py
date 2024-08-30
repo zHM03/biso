@@ -203,12 +203,14 @@ class Music(commands.Cog):
         if self.voice_client and self.voice_client.channel != ctx.author.voice.channel:
             await ctx.send("Müsait değilim.")
             return
+            Message_to_react = None 
 
         with YoutubeDL(self.ytdl_opts) as ydl:
             try:
                 if "youtube.com/watch" in link or "youtu.be" in link:
                     info = ydl.extract_info(link, download=False)
                     await self.play_song(ctx, info['url'], info['title'])
+                    message_to_react = ctx.message 
 
                 elif "spotify.com/track" in link:
                     track_id = link.split('/')[-1].split('?')[0]
@@ -223,6 +225,7 @@ class Music(commands.Cog):
                     await self.play_song(ctx, info['url'], info['title'])
 
                 elif "spotify.com/playlist" in link:
+                    playlist = sp.playlist_tracks(link) 
                     playlist_id = link.split('/')[-1].split('?')[0]
                     playlist_info = sp.playlist(playlist_id)
                     for item in playlist_info['tracks']['items']:
@@ -235,6 +238,16 @@ class Music(commands.Cog):
                         if 'entries' in info and len(info['entries']) > 0:
                             info = info['entries'][0]
                         await self.play_song(ctx, info['url'], info['title'])
+                        message_to_react = ctx.message 
+                else:
+                        await ctx.send ("hata") 
+                        return
+            except Exception as e:
+                await ctx.send (f"bir hata var {e}") 
+                return 
+                if message_to_react:
+                    await
+                    message_to_react.add_reaction('✅')
 
                 else:
                     search_query = f"ytsearch:{link}"
