@@ -56,7 +56,8 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if self.queue:
             self.is_playing = True
-            song = self.queue[0] 
+            song = self.queue[0]
+            self.queue = self.queue [1:]
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
@@ -76,8 +77,6 @@ class Music(commands.Cog):
     async def on_song_end(self):
         """Bir şarkı sona erdiğinde çağrılır"""
         if self.queue:
-            # Kuyruğun ilk şarkısını sadece çalındıktan sonra kontrol et
-            self.queue.append(self.queue.pop(0))  # Çalınan şarkıyı kuyruğun sonuna ekle
             await self.play_next()
         else:
             self.is_playing = False
