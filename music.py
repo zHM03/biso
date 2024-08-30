@@ -57,7 +57,8 @@ class Music(commands.Cog):
         if self.queue:
             self.is_playing = True
             song = self.queue[0]
-            self.queue = self.queue [1:]
+            current_song = self.queue.pop(0)
+            
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
@@ -73,13 +74,6 @@ class Music(commands.Cog):
                 await channel.send("Şarkıyı çalamadım.")
                 self.is_playing = False
                 await self.play_next()
-
-    async def on_song_end(self):
-        """Bir şarkı sona erdiğinde çağrılır"""
-        if self.queue:
-            await self.play_next()
-        else:
-            self.is_playing = False
             
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
