@@ -38,6 +38,9 @@ class Music(commands.Cog):
         }
         self.last_message = None
 
+  async def cleanup_ffmpeg_processes():
+        os.system("pkill -f ffmpeg") 
+
     async def play_song(self, ctx, audio_url, song_title):
         """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
         song = {
@@ -196,9 +199,6 @@ class Music(commands.Cog):
             cog = self.bot.get_cog("Music")
             await cog.send_queue(interaction.channel, page=self.page)
             await interaction.response.defer()
-
-    async def cleanup_ffmpeg_processes():
-        os.system("pkill -f ffmpeg") 
 
     @commands.command()
     async def p(self, ctx, *, link):
