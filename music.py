@@ -150,6 +150,10 @@ class Music(commands.Cog):
 
             current_y += table_height + 10
 
+        for index, song in enumerate(self.queue):
+            if index < start_index or index >= end_index:
+                song_text = f"{index + 1}, {song['title']} ✅"
+
         buffer = io.BytesIO()
         background.save(buffer, format='PNG', optimize=True, quality=30)
         buffer.seek(0)
