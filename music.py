@@ -125,9 +125,14 @@ class Music(commands.Cog):
 
         current_y = songs_text_y + songs_text_height + 60
 
-        for index, song in enumerate(self.queue[start_index:end_index]):
-            song_text = f"{start_index + index + 1}. {song['title']}"
-
+        for index, song in enumerate(self.queue):
+            if index < start_index:
+                song_text = f"{index + 1}, {song['title']} ✅"
+            elif index < end_index:
+                song_text =f"{index + 1}, {song['title']}"
+            else:
+                continue
+                
             # Metin boyutunu hesapla
             text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
             song_text_width = text_bbox[2] - text_bbox[0]
@@ -149,12 +154,6 @@ class Music(commands.Cog):
             background.paste(table, (table_x, table_y), table)
 
             current_y += table_height + 10
-            
-        finished_y = current_y
-        
-        for index, song in enumerate(self.queue):
-            if index < start_index or index >= end_index:
-                song_text = f"{index + 1}, {song['title']} ✅"
 
         buffer = io.BytesIO()
         background.save(buffer, format='PNG', optimize=True, quality=30)
