@@ -77,14 +77,18 @@ class Music(commands.Cog):
                 await self.voice_client.disconnect()
 
     async def after_play(self):
+        """Çalınan şarkı bittikten sonra yapılacak işlemler"""
         if len(self.queue) > 0:
-            self.queue.pop(0)  # Kuyruğun ilk şarkısını çıkart
+            song = self.queue.pop(0)  # Kuyruğun ilk şarkısını çıkart
+            song['title'] = f"{song['title']} ✅"  # Çalınan şarkının yanına ✅ ekle
+            self.queue.append(song)  # Çalınan şarkıyı kuyruğa tekrar ekle
             if len(self.queue) > 0:
                 await self.play_next()
         else:
             self.is_playing = False
-            if self.voice_client and self.vocie_client.is_connected():
+            if self.voice_client and self.voice_client.is_connected():
                 await self.voice_client.disconnect()
+        await self.send_queue(self.bot.get_channel(song['channel_id']))  # Kuyruğu güncelle
 
 
     async def send_queue(self, ctx, page=1):
