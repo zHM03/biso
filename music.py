@@ -70,7 +70,7 @@ class Music(commands.Cog):
 
             try:
             # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.after_callback()))
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
@@ -79,6 +79,11 @@ class Music(commands.Cog):
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             await self.voice_client.disconnect()
 
+    async def after_callback(self) 
+        self.is_playing = False
+        await self.play_next() 
+        if len(self.queue) == 0
+            await self.voice_client.disconnect() 
 
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
