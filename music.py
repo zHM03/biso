@@ -74,9 +74,8 @@ class Music(commands.Cog):
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 if "code 9" not in str(e):
-
-                channel = self.bot.get_channel(song['channel_id'])
-                await channel.send("Şarkıyı çalamadım.")
+                    channel = self.bot.get_channel(song['channel_id'])
+                    await channel.send("Şarkıyı çalamadım.")
                 self.is_playing = False
                 await self.play_next()
         else:
