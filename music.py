@@ -63,27 +63,27 @@ class Music(commands.Cog):
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
-        }
+            }
 
-        def after_playing(error):
-            if error:
-                print(f'Error:{str(error)}') 
-            self.bot.loop.create_task(self.play_next()) 
+            def after_playing(error):
+                if error:
+                    print(f'Error:{str(error)}')
+                self.bot.loop.create_task(self.play_next()) 
 
-        try:
-            # Ses dosyasını oynat
-            self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=after_playing) 
+            try:
+                # Ses dosyasını oynat
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=after_playing) 
 
-            if len(self.queue) == 1:
-                self.voice_client.stop() 
-        except Exception as e:  # Hata durumunda çalışacak blok
-            print(f'Error: {str(e)}')
-            self.is_playing = False
-            await self.play_next()
-    else:
-        self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
-        if self.voice_client and self.voice_client.is_connected():
-            await self.voice_client.disconnect()
+                if len(self.queue) == 1:
+                    self.voice_client.stop() 
+            except Exception as e:  # Hata durumunda çalışacak blok
+                print(f'Error: {str(e)}')
+                self.is_playing = False
+                await self.play_next()
+        else:
+            self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
+            if self.voice_client and self.voice_client.is_connected():
+                await self.voice_client.disconnect()
 
 
     async def send_queue(self, ctx, page=1):
