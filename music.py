@@ -57,11 +57,7 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-
-            if len(self.queue) > 1:
-                song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
-            else:
-                song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
+            song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
