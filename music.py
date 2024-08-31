@@ -57,12 +57,7 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-
-            # Eğer sadece bir şarkı kaldıysa, onu çal ve dur
-            if len(self.queue) == 1:
-                song = self.queue[0]  # Kuyruğun son şarkısını seç 
-            else:
-                song = self.queue[0]  # Kuyruğun ilk şarkısını çal
+            song = self.queue[0]  # Kuyruğun son şarkısını seç
 
             ffmpeg_options = {
             'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -76,6 +71,10 @@ class Music(commands.Cog):
                 print(f'Error: {str(e)}')
                 self.is_playing = False
                 await self.play_next()
+
+            if len(self.queue) == 1:
+                self.is_playing = False
+                await self.voice_client.disconnect() 
 
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
