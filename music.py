@@ -73,7 +73,7 @@ class Music(commands.Cog):
 
             try:
                 # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: asyncio.run_coroutine_threadsafe(self.handle_end_of_playback(), self.bot.loop)
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: asyncio.run_coroutine_threadsafe(self.handle_end_of_playback(), self.bot.loop))
                 await asyncio.sleep(0.5)
             except Exception as e:
                 print(f'Error: {str(e)}')
