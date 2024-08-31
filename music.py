@@ -78,8 +78,9 @@ class Music(commands.Cog):
 
     async def after_play(self):
         if len(self.queue) > 0:
-            self.queue.append(self.queue.pop(0))  # Kuyruğun ilk şarkısını çıkart
-            await self.play_next()
+            self.queue.pop(0)  # Kuyruğun ilk şarkısını çıkart
+            if len(self.queue) > 0:
+                await self.play_next()
         else:
             self.is_playing = False
             if self.voice_client and self.vocie_client.is_connected():
