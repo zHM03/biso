@@ -209,7 +209,7 @@ class Music(commands.Cog):
         async def update_message(self, interaction: discord.Interaction):
             cog = self.bot.get_cog("Music")
             await cog.send_queue(interaction.channel, page=self.page)
-            await interaction.response.defer()
+            await interaction.response.edit_message(view=self)
 
     @commands.command()
     async def p(self, ctx, *, link):
