@@ -39,10 +39,10 @@ class Music(commands.Cog):
 
     async def join_voice_channel(self,     voice_channel):
         # Ses kanalına katılma işlemi burada yapılır
-        self.voice_client = await voice_channel.connect()
+        self.voice_client = await voice_channel.connect(10)
 
         # Bağlantıdan hemen sonra gecikme ekleyin
-        await asyncio.sleep(1)  # 1 saniyelik gecikme ekleyin
+        await asyncio.sleep()  # 1 saniyelik gecikme ekleyin
 
 
     async def play_song(self, ctx, audio_url, song_title):
