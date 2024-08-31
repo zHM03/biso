@@ -274,12 +274,12 @@ class Music(commands.Cog):
     async def l(self, ctx):
         """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
+            await ctx.send("Sesli kanaldan ayrıldım.")
             if self.voice_client.is_playing():
                 self.voice_client.stop() 
             await self.voice_client.disconnect()
             self.queue.clear()
             self.is_playing = False
-            await ctx.send("Sesli kanaldan ayrıldım.")
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
 
