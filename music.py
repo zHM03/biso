@@ -60,8 +60,7 @@ class Music(commands.Cog):
 
             # Eğer sadece bir şarkı kaldıysa, onu çal ve dur
             if len(self.queue) == 1:
-                song = self.queue[0]  # Kuyruğun son şarkısını seç
-                self.queue = []  # Kuyruğu temizleme, sadece sonraki çalıştırmada durdurmak için boş liste olarak ayarla
+                song = self.queue[0]  # Kuyruğun son şarkısını seç 
             else:
                 song = self.queue[0]  # Kuyruğun ilk şarkısını çal
 
