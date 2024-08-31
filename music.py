@@ -149,7 +149,8 @@ class Music(commands.Cog):
             background.paste(table, (table_x, table_y), table)
 
             current_y += table_height + 10
-
+            
+        finished_y = current_y
         for index, song in enumerate(self.queue):
             if index < start_index or index >= end_index:
                 song_text = f"{index + 1}, {song['title']} ✅"
