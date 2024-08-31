@@ -37,13 +37,6 @@ class Music(commands.Cog):
         }
         self.last_message = None
 
-    async def join_voice_channel(self,     voice_channel):
-        # Ses kanalına katılma işlemi burada yapılır
-        self.voice_client = await voice_channel.connect(10)
-
-        # Bağlantıdan hemen sonra gecikme ekleyin
-        await asyncio.sleep()  # 1 saniyelik gecikme ekleyin
-
 
     async def play_song(self, ctx, audio_url, song_title):
         """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
@@ -64,33 +57,27 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-            song = self.queue[0]  # Kuyruğun ilk şarkısını seç
+
+            if len(self.queue) > 1:
+                song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
+            else:
+                song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
 
             ffmpeg_options = {
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
-            }
+}
 
             try:
-                # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: asyncio.run_coroutine_threadsafe(self.handle_end_of_playback(), self.bot.loop))
-                await asyncio.sleep(0.5)
-            except Exception as e:
+            # Ses dosyasını oynat
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+            except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
-                await self.handle_end_of_playback()
+                await self.play_next()
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
-            if self.voice_client.is_connected():
-                await self.voice_client.disconnect()
-
-    async def handle_end_of_playback(self):
-        if len(self.queue) > 0:
-            await self.play_next()
-        else:
-            self.is_playing = False
-            if self.voice_client.is_connected():
-                await self.voice_client.disconnect()
+            await self.voice_client.disconnect()
 
 
     async def send_queue(self, ctx, page=1):
