@@ -80,6 +80,7 @@ class Music(commands.Cog):
             await self.voice_client.disconnect()
 
     async def after_callback(self):
+        print("callback trigerd") 
         self.is_playing = False
         await self.play_next() 
         if len(self.queue) == 0:
