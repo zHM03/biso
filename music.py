@@ -4,12 +4,10 @@ from discord.ui import View, Button
 from yt_dlp import YoutubeDL
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import signal
 import os
 from dotenv import load_dotenv
 import io
 from PIL import Image, ImageDraw, ImageFont
-import cleanup
 
 load_dotenv()
 
@@ -38,9 +36,6 @@ class Music(commands.Cog):
             }],
         }
         self.last_message = None
-
-    async def cleanup_ffmpeg_processes(self):
-        cleanup.terminate_ffmpeg_processes() 
 
 
     async def play_song(self, ctx, audio_url, song_title):
@@ -85,7 +80,6 @@ class Music(commands.Cog):
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             await self.voice_client.disconnect()
-            await self.cleanup_ffmpeg_processes() 
 
 
     async def send_queue(self, ctx, page=1):
@@ -287,7 +281,6 @@ class Music(commands.Cog):
             await self.voice_client.disconnect()
             self.queue.clear()
             self.is_playing = False
-            await self.cleanup_ffmpeg_processes() 
             await ctx.send("Sesli kanaldan ayrıldım.")
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
