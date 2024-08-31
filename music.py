@@ -58,23 +58,26 @@ class Music(commands.Cog):
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
 
-            if len(self.queue) > 1:
-                song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
+            # Eğer sadece bir şarkı kaldıysa, onu çal ve dur
+            if len(self.queue) == 1:
+                song = self.queue[0]  # Kuyruğun son şarkısını seç
+                self.queue = []  # Kuyruğu temizleme, sadece sonraki çalıştırmada durdurmak için boş liste olarak ayarla
             else:
-                song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
+                song = self.queue[0]  # Kuyruğun ilk şarkısını çal
 
             ffmpeg_options = {
-                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
-}
+            }
 
             try:
-            # Ses dosyasını oynat
+                # Ses dosyasını oynat
                 self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
                 await self.play_next()
+
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             await self.voice_client.disconnect()
