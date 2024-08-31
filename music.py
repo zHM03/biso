@@ -66,7 +66,7 @@ class Music(commands.Cog):
 
             try:
             # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.after_play()))
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
@@ -75,7 +75,14 @@ class Music(commands.Cog):
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             if self.voice_client and self.voice_client.is_connected():
                 await self.voice_client.disconnect()
-            self.queue.clear()
+
+    async def after_play(self):
+        if len(self.queue) > 0:
+            await self.play_next()
+        else:
+            self.is_playing = False
+            if self.voice_client and self.vocie_client.is_connected():
+                await self.voice_client.disconnect()
 
 
     async def send_queue(self, ctx, page=1):
