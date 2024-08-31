@@ -156,26 +156,6 @@ class Music(commands.Cog):
             if index < start_index or index >= end_index:
                 song_text = f"{index + 1}, {song['title']} ✅"
 
-                    # Bitmiş şarkılar için tabloyu oluştur
-                text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
-                song_text_width = text_bbox[2] - text_bbox[0]
-                song_text_height = text_bbox[3] - text_bbox[1]
-                table_width = song_text_width + 40
-                table_height = song_text_height + 20
-                table_x = 20
-                table_y = current_y
-
-                table = Image.new('RGBA', (table_width, table_height), (0, 0, 0, 150))
-                draw_table = ImageDraw.Draw(table)
-                shadow_offset = 2
-                shadow_color = (0, 0, 0, 128)
-                draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=song_font, fill=shadow_color)
-                draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
-
-                background.paste(table, (table_x, table_y), table)
-
-                current_y += table_height + 10
-
         buffer = io.BytesIO()
         background.save(buffer, format='PNG', optimize=True, quality=30)
         buffer.seek(0)
