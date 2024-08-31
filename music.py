@@ -55,10 +55,9 @@ class Music(commands.Cog):
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
-        if self.queue and not self.is_playing:
+        if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-            song = self.queue.popleft()
-            self.current_song = song
+            song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -78,9 +77,10 @@ class Music(commands.Cog):
                 await self.voice_client.disconnect()
 
     async def after_play(self):
-        self.current_song = None
         if len(self.queue) > 0:
-            await self.play_next()  # Kuyruğun devamını çal
+            self.queue.pop(0)  # Kuyruğun ilk şarkısını çıkart
+            if len(self.queue) > 0:
+                await self.play_next()
         else:
             self.is_playing = False
             if self.voice_client and self.vocie_client.is_connected():
@@ -291,4 +291,4 @@ class Music(commands.Cog):
             await ctx.send("Bot bir sesli kanalda değil.")
 
 async def setup(bot):
-    await bot.add_cog(Music(bot))
+    await bot.add_cog(Music(bot)) 
