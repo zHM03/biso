@@ -64,7 +64,7 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-            song = self.queue[0]  # Kuyruğun son şarkısını seç
+            song = self.queue[0]  # Kuyruğun ilk şarkısını seç
 
             ffmpeg_options = {
             'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -73,19 +73,23 @@ class Music(commands.Cog):
 
             try:
                 # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
-            except Exception as e:  # Hata durumunda çalışacak blok
+                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.handle_end_of_playback()))
+            except Exception as e:
                 print(f'Error: {str(e)}')
                 self.is_playing = False
-                await self.play_next()
-
-            if len(self.queue) == 1:
-                self.is_playing = False
-                await self.voice_client.disconnect() 
-
+                await self.handle_end_of_playback()
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
-            await self.voice_client.disconnect()
+            if self.voice_client.is_connected():
+                await self.voice_client.disconnect()
+
+    async def handle_end_of_playback(self):
+        """Oynatma bitişi ile ilgili işlemleri yap"""
+        self.is_playing = False
+        if len(self.queue) == 1:  # Kuyrukta sadece bir şarkı varsa
+            self.queue = []  # Kuyruğu temizle
+            if self.voice_client.is_connected():
+                await self.voice_client.disconnect()
 
 
     async def send_queue(self, ctx, page=1):
