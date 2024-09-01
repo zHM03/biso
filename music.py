@@ -219,6 +219,7 @@ class Music(commands.Cog):
                 if "youtube.com/watch" in link or "youtu.be" in link:
                     info = ydl.extract_info(link, download=False)
                     await self.play_song(ctx, info['url'], info['title'])
+                    await ctx.message.add_reaction('✅')
 
                 elif "spotify.com/track" in link:
                     track_id = link.split('/')[-1].split('?')[0]
@@ -231,6 +232,7 @@ class Music(commands.Cog):
                     if 'entries' in info and len(info['entries']) > 0:
                         info = info['entries'][0]
                     await self.play_song(ctx, info['url'], info['title'])
+                    await ctx.message.add_reaction('✅')
 
                 elif "spotify.com/playlist" in link:
                     playlist_id = link.split('/')[-1].split('?')[0]
