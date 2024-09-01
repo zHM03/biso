@@ -276,12 +276,16 @@ class Music(commands.Cog):
         """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
             if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
-                self.voice_client.stop()
-                await ctx.message.add_reaction('✅')
+                # Eğer kuyruk boşsa
+                if not self.voice_client.queue:
+                    await ctx.send("Şarkılar bitti be geç geç geç nereye kadar!.")
+                    await ctx.message.add_reaction("❌")
+                else:
+                    self.voice_client.stop()
+                    await ctx.message.add_reaction('✅')
             else:
                 await ctx.send("Sen ne karışıyon!.")
                 await ctx.message.add_reaction("❌")
-                # Mesaj göndermeyi kaldırdık
         else:
             await ctx.send("Neyi geçeyim gardeş neyiii?!?!.")
             await ctx.message.add_reaction("❌")
