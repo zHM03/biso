@@ -43,9 +43,12 @@ class Music(commands.Cog):
         song = {
             'url': audio_url,
             'title': song_title,
-            'channel_id': ctx.channel.id
+            'channel_id': ctx.channel.id,
+            'played': False  # Şarkı çalındı mı?
         }
-        self.queue.append(song)
+        # Şarkıyı kuyruğa eklemeden önce, kuyrukta aynı URL'ye sahip ve çalınmış bir şarkı olup olmadığını kontrol et
+        if not any(s['url'] == song['url'] and s['played'] for s in self.queue):
+            self.queue.append(song)
         await self.send_queue(ctx)  # Kuyruğu güncelle
 
         if not self.is_playing:
@@ -58,19 +61,18 @@ class Music(commands.Cog):
         if len(self.queue) > 0:  # Kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
 
-            if len(self.queue) > 1:
-                song = self.queue[1]  # Kuyruğun ikinci şarkısını seç
-            else:
-                song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
+            # Kuyruğun ilk şarkısını seç
+            song = self.queue[0]
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
-}
+            }
 
             try:
-            # Ses dosyasını oynat
+                # Ses dosyasını oynat
                 self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
+                song['played'] = True  # Şarkıyı çaldı olarak işaretle
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
@@ -78,10 +80,12 @@ class Music(commands.Cog):
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             if self.voice_client and self.voice_client.is_connected():
+                # Şarkı bitiminden sonra 5 saniye bekle
                 await asyncio.sleep(5)
-                if len(self.queue) == 0:
+                # Kuyruk hala boşsa ve sesli kanalda kimse yoksa ayrıl
+                if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
-                    self.queue.clear()
+                    self.queue.clear()  # Kuyruğu temizle
 
 
     async def send_queue(self, ctx, page=1):
