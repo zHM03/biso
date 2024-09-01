@@ -275,66 +275,84 @@ class Music(commands.Cog):
     async def n(self, ctx):
         """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.stop()
-            await ctx.message.add_reaction('✅')
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                self.voice_client.stop()
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Sen ne karışıyon!.")
+                await ctx.message.add_reaction("❌")
+                # Mesaj göndermeyi kaldırdık
         else:
             await ctx.send("Neyi geçeyim gardeş neyiii?!?!.")
             await ctx.message.add_reaction("❌")
-            # Mesaj göndermeyi kaldırdık
 
     @commands.command()
     async def s(self, ctx):
         """Şarkıyı duraklatır"""
         if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.pause()
-            await ctx.message.add_reaction('✅')
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                self.voice_client.pause()
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Karışma yav.")
+                await ctx.message.add_reaction("❌")
         else:
             await ctx.send("Sor bakayım şarkı var mı.")
             await ctx.message.add_reaction("❌")
-            # Mesaj göndermeyi kaldırdık
 
     @commands.command()
     async def r(self, ctx):
         """Şarkıyı devam ettirir"""
         if self.voice_client and self.voice_client.is_paused():
-            self.voice_client.resume()
-            await ctx.message.add_reaction('✅')
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                self.voice_client.resume()
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Çok mu istiyon.")
+                await ctx.message.add_reaction("❌")
         else:
             await ctx.send("Neyi devam edeyim neyiii?!?!.")
             await ctx.message.add_reaction("❌")
-            # Mesaj göndermeyi kaldırdık
 
     @commands.command()
     async def l(self, ctx):
         """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
-            await ctx.send("Allah'a emanet.")
-            await ctx.message.add_reaction('✅')
-            if self.voice_client.is_playing():
-                self.voice_client.stop() 
-            await self.voice_client.disconnect()
-            self.queue.clear()
-            self.user_queue.clear()
-            self.is_playing = False
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                await ctx.send("Allah'a emanet.")
+                await ctx.message.add_reaction('✅')
+                if self.voice_client.is_playing():
+                    self.voice_client.stop()
+                await self.voice_client.disconnect()
+                self.queue.clear()
+                self.user_queue.clear()
+                self.is_playing = False
+            else:
+                await ctx.send("Yiyosa gel!.")
+                await ctx.message.add_reaction("❌")
         else:
-            await ctx.send("Sor bakayım orda mıyım.")
+            await ctx.send("yokum ki.")
             await ctx.message.add_reaction("❌")
 
     @commands.command()
     async def d(self, ctx, index: int):
         """Kuyruktaki belirli bir sıradaki şarkıyı siler"""
         if 1 <= index <= len(self.user_queue):
-            song_to_remove = self.user_queue.pop(index - 1)  # Kuyruktaki şarkıyı kaldır
-            for i, song in enumerate(self.queue):  # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
-                if song['url'] == song_to_remove['url']:
-                    self.queue.pop(i)
-                    break
-            await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
-            await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
-            await ctx.message.add_reaction('✅')
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                song_to_remove = self.user_queue.pop(index - 1)  # Kuyruktaki şarkıyı kaldır
+                for i, song in enumerate(self.queue):  # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
+                    if song['url'] == song_to_remove['url']:
+                        self.queue.pop(i)
+                        break
+                await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
+                await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Tanıyamadım, kimdiniz")
+                await ctx.message.add_reaction("❌")
         else:
             await ctx.send(f"Kuyrukta {index}. numaralı şarkı yog.")
             await ctx.message.add_reaction("❌")
-
+            
 async def setup(bot):
     await bot.add_cog(Music(bot))
