@@ -235,6 +235,8 @@ class Music(commands.Cog):
                 elif "spotify.com/playlist" in link:
                     playlist_id = link.split('/')[-1].split('?')[0]
                     playlist_info = sp.playlist(playlist_id)
+                    tracks_count = len(playlist_info['tracks']['items'])
+                    success_count = 0
                     for item in playlist_info['tracks']['items']:
                         track = item['track']
                         track_name = track['name']
@@ -245,6 +247,13 @@ class Music(commands.Cog):
                         if 'entries' in info and len(info['entries']) > 0:
                             info = info['entries'][0]
                         await self.play_song(ctx, info['url'], info['title'])
+                        success_count += 1
+                    if  success_count == tracks_count:
+                        await ctx.message.add_reaction("✅")
+                    else:
+                        await ctx.message.add_reaction("❌")
+
+                
 
                 else:
                     search_query = f"ytsearch:{link}"
