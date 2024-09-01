@@ -21,6 +21,7 @@ class Music(commands.Cog):
         self.bot = bot
         self.voice_client = None
         self.queue = []
+        self.completed = []  # Çalınan şarkılar için liste
         self.is_playing = False
         self.items_per_page = 5
         self.ytdl_opts = {
@@ -43,11 +44,10 @@ class Music(commands.Cog):
         song = {
             'url': audio_url,
             'title': song_title,
-            'channel_id': ctx.channel.id,
-            'played': False  # Şarkı çalındı mı?
+            'channel_id': ctx.channel.id
         }
-        # Şarkıyı kuyruğa eklemeden önce, kuyrukta aynı URL'ye sahip ve çalınmış bir şarkı olup olmadığını kontrol et
-        if not any(s['url'] == song['url'] and s['played'] for s in self.queue):
+        # Şarkıyı kuyruğa eklemeden önce, tamamlanmış listede aynı URL'ye sahip bir şarkı olup olmadığını kontrol et
+        if not any(s['url'] == song['url'] for s in self.completed):
             self.queue.append(song)
         await self.send_queue(ctx)  # Kuyruğu güncelle
 
@@ -72,7 +72,10 @@ class Music(commands.Cog):
             try:
                 # Ses dosyasını oynat
                 self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
-                song['played'] = True  # Şarkıyı çaldı olarak işaretle
+                # Şarkıyı tamamlanmış listeye ekle
+                self.completed.append(song)
+                # Kuyruktan şarkıyı geçici olarak kaldır
+                self.queue.pop(0)
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
                 self.is_playing = False
@@ -86,6 +89,7 @@ class Music(commands.Cog):
                 if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
                     self.queue.clear()  # Kuyruğu temizle
+                    self.completed.clear()  # Tamamlanmış listeyi temizle
 
 
     async def send_queue(self, ctx, page=1):
