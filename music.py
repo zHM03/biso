@@ -230,9 +230,7 @@ class Music(commands.Cog):
             else:
                 await interaction.response.send_message("Şu an çalan bir şarkı yok.")
 
-            async def loop_queue(self, interaction: discord.Interaction):
-            # Kuyruğu döngüye alma işlemi burada yapılabilir
-            # Bu örnekte sadece bir mesaj gönderiyoruz
+        async def loop_queue(self, interaction: discord.Interaction):
             await interaction.response.send_message("Kuyruğu döngüye almayı desteklemiyor.")
 
         async def clear_queue(self, interaction: discord.Interaction):
