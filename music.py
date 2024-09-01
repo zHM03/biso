@@ -72,8 +72,6 @@ class Music(commands.Cog):
             try:
                 # Ses dosyasını oynat
                 self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
-                # Şarkıyı kullanıcı kuyruğundan kaldır
-                self.user_queue = [s for s in self.user_queue if s['url'] != song['url']]
                 # Kod kuyruğundan şarkıyı geçici olarak kaldır
                 self.queue.pop(0)
             except Exception as e:  # Hata durumunda çalışacak blok
@@ -88,7 +86,6 @@ class Music(commands.Cog):
                 # Kuyruk hala boşsa ve sesli kanalda kimse yoksa ayrıl
                 if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
-                    self.queue.clear()  # Kod kuyruğunu temizle
                     self.user_queue.clear()  # Kullanıcı kuyruğunu temizle
 
     async def send_queue(self, ctx, page=1):
