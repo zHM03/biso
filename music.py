@@ -277,7 +277,7 @@ class Music(commands.Cog):
         if self.voice_client and self.voice_client.is_playing():
             if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
                 # Eğer kuyruk boşsa
-                if not self.voice_client.queue:
+                if len(self.queue) == 0:
                     await ctx.send("Şarkılar bitti be geç geç geç nereye kadar!.")
                     await ctx.message.add_reaction("❌")
                 else:
