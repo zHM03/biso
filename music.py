@@ -37,7 +37,6 @@ class Music(commands.Cog):
         }
         self.last_message = None
 
-
     async def play_song(self, ctx, audio_url, song_title):
         """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
         song = {
@@ -55,41 +54,29 @@ class Music(commands.Cog):
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
-        if len(self.queue) > 0:  # Kuyrukta şarkı varsa
-            self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-            song = self.queue[0]  # Kuyruğun ilk şarkısını çalmaya devam et
-
+        if self.queue:
+            self.is_playing = True
+            song = self.queue[0] 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                 'options': '-vn'
-}
-
+            }
             try:
-            # Ses dosyasını oynat
-                self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.after_play()))
-            except Exception as e:  # Hata durumunda çalışacak blok
-                print(f'Error: {str(e)}')
+                ffmpeg_audio = discord.FFmpegPCMAudio(song['url'], **ffmpeg_options)
+                if self.voice_client.is_playing():
+                    self.voice_client.stop()
+                self.voice_client.play(ffmpeg_audio, after=lambda e: self.bot.loop.create_task(self.play_next()))
+                # Bu satırı kaldırdık, şarkı ismi mesajını göndermeyecek
+                # channel = self.bot.get_channel(song['channel_id'])
+                # await channel.send(f"🎶 {song['title']} 🎶 çalıyor!")
+            except Exception as e:
+                print(f"Playback error: {e}")
+                channel = self.bot.get_channel(song['channel_id'])
+                await channel.send("Şarkıyı çalamadım.")
                 self.is_playing = False
                 await self.play_next()
         else:
-            self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
-            if self.voice_client and self.voice_client.is_connected():
-                await self.voice_client.disconnect()
-
-    async def after_play(self):
-        """Çalınan şarkı bittikten sonra yapılacak işlemler"""
-        if len(self.queue) > 0:
-            song = self.queue.pop(0)  # Kuyruğun ilk şarkısını çıkart
-            song['title'] = f"{song['title']} ✅"  # Çalınan şarkının yanına ✅ ekle
-            self.queue.append(song)  # Çalınan şarkıyı kuyruğa tekrar ekle
-            if len(self.queue) > 0:
-                await self.play_next()
-        else:
             self.is_playing = False
-            if self.voice_client and self.voice_client.is_connected():
-                await self.voice_client.disconnect()
-        await self.send_queue(self.bot.get_channel(song['channel_id']))  # Kuyruğu güncelle
-
 
     async def send_queue(self, ctx, page=1):
         """Kuyruğu görsel olarak gönderir"""
@@ -98,22 +85,22 @@ class Music(commands.Cog):
         background_path = os.getenv('BACKGROUND_IMAGE_PATH', 'assets/chopper.jpg')
         background = Image.open(background_path).convert('RGBA')
         img_width, img_height = background.size
-
+        
         base_width = 800
         width_percent = base_width / float(img_width)
         height_size = int(float(img_height) * width_percent)
         background = background.resize((base_width, height_size), Image.LANCZOS)
-
+        
         overlay = Image.new('RGBA', background.size, (0, 0, 0, 150))
         background = Image.alpha_composite(background, overlay)
-
+        
         try:
             title_font = ImageFont.truetype("assets/pirata.ttf", 50)
             song_font = ImageFont.truetype("assets/pirata.ttf", 30)
         except IOError:
             title_font = ImageFont.load_default()
             song_font = ImageFont.load_default()
-
+            
         draw = ImageDraw.Draw(background)
 
         songs_text = "SONGS\n"
@@ -123,20 +110,15 @@ class Music(commands.Cog):
         songs_text_x = (background.width - songs_text_width) // 2
         songs_text_y = 10  # Yukarıdan 10 piksel aşağıda
         draw.text((songs_text_x, songs_text_y), songs_text, font=title_font, fill=(255, 255, 255))
-
+        
         start_index = (page - 1) * self.items_per_page
         end_index = min(start_index + self.items_per_page, len(self.queue))
 
         current_y = songs_text_y + songs_text_height + 60
-
-        for index, song in enumerate(self.queue):
-            if index < start_index:
-                song_text = f"{index + 1}, {song['title']} ✅"
-            elif index < end_index:
-                song_text =f"{index + 1}, {song['title']}"
-            else:
-                continue
-                
+        
+        for index, song in enumerate(self.queue[start_index:end_index]):
+            song_text = f"{start_index + index + 1}. {song['title']}"
+            
             # Metin boyutunu hesapla
             text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
             song_text_width = text_bbox[2] - text_bbox[0]
@@ -145,7 +127,7 @@ class Music(commands.Cog):
             table_height = song_text_height + 20
             table_x = + 20
             table_y = current_y
-
+            
             # Şeffaf tabloyu oluştur
             table = Image.new('RGBA', (table_width, table_height), (0, 0, 0, 150))
             draw_table = ImageDraw.Draw(table)
@@ -156,13 +138,13 @@ class Music(commands.Cog):
 
             # Tabloyu arka plana ekle
             background.paste(table, (table_x, table_y), table)
-
+            
             current_y += table_height + 10
-
+        
         buffer = io.BytesIO()
         background.save(buffer, format='PNG', optimize=True, quality=30)
         buffer.seek(0)
-
+        
         if self.last_message:
             try:
                 await self.last_message.delete()
@@ -209,7 +191,7 @@ class Music(commands.Cog):
         async def update_message(self, interaction: discord.Interaction):
             cog = self.bot.get_cog("Music")
             await cog.send_queue(interaction.channel, page=self.page)
-            await interaction.response.edit_message(view=self)
+            await interaction.response.defer()
 
     @commands.command()
     async def p(self, ctx, *, link):
@@ -217,7 +199,7 @@ class Music(commands.Cog):
         if not ctx.author.voice:
             await ctx.send("Bir sesli kanalda olmalısın!")
             return
-
+        
         if self.voice_client and self.voice_client.channel != ctx.author.voice.channel:
             await ctx.send("Müsait değilim.")
             return
@@ -290,14 +272,12 @@ class Music(commands.Cog):
     async def l(self, ctx):
         """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
-            await ctx.send("Sesli kanaldan ayrıldım.")
-            if self.voice_client.is_playing():
-                self.voice_client.stop() 
             await self.voice_client.disconnect()
             self.queue.clear()
             self.is_playing = False
+            await ctx.send("Sesli kanaldan ayrıldım.")
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
 
 async def setup(bot):
-    await bot.add_cog(Music(bot)) 
+    await bot.add_cog(Music(bot))
