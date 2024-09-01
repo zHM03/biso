@@ -294,10 +294,10 @@ class Music(commands.Cog):
 
     @commands.command()
     async def d(self, ctx, index: int):
-         """Kuyruktaki belirli bir sıradaki şarkıyı siler"""
+        """Kuyruktaki belirli bir sıradaki şarkıyı siler"""
         if 1 <= index <= len(self.user_queue):
-            song_to_remove = self.user_queue.pop(index - 1) # Kuyruktaki şarkıyı kaldır
-            for i, song in enumerate(self.queue): # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
+            song_to_remove = self.user_queue.pop(index - 1)  # Kuyruktaki şarkıyı kaldır
+            for i, song in enumerate(self.queue):  # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
                 if song['url'] == song_to_remove['url']:
                     self.queue.pop(i)
                     break
