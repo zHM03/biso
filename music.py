@@ -77,7 +77,9 @@ class Music(commands.Cog):
                 await self.play_next()
         else:
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
-            await self.voice_client.disconnect()
+            if self.voice_client and self.voice_client.is_connected():
+                await self.voice_client.disconnect()
+            self.queue.clear()
 
 
     async def send_queue(self, ctx, page=1):
