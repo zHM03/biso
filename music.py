@@ -276,6 +276,10 @@ class Music(commands.Cog):
         """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.stop()
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.send("Neyi geçeyim gardeş neyiii?!?!.")
+            await ctx.message.add_reaction("❌")
             # Mesaj göndermeyi kaldırdık
 
     @commands.command()
@@ -283,6 +287,10 @@ class Music(commands.Cog):
         """Şarkıyı duraklatır"""
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.pause()
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.send("Sor bakayım şarkı var mı.")
+            await ctx.message.add_reaction("❌")
             # Mesaj göndermeyi kaldırdık
 
     @commands.command()
@@ -290,13 +298,18 @@ class Music(commands.Cog):
         """Şarkıyı devam ettirir"""
         if self.voice_client and self.voice_client.is_paused():
             self.voice_client.resume()
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.send("Neyi devam edeyim neyiii?!?!.")
+            await ctx.message.add_reaction("❌")
             # Mesaj göndermeyi kaldırdık
 
     @commands.command()
     async def l(self, ctx):
         """Botu sesli kanaldan çıkarır"""
         if self.voice_client and self.voice_client.is_connected():
-            await ctx.send("Sesli kanaldan ayrıldım.")
+            await ctx.send("Allah'a emanet.")
+            await ctx.message.add_reaction('✅')
             if self.voice_client.is_playing():
                 self.voice_client.stop() 
             await self.voice_client.disconnect()
@@ -304,7 +317,8 @@ class Music(commands.Cog):
             self.user_queue.clear()
             self.is_playing = False
         else:
-            await ctx.send("Bot bir sesli kanalda değil.")
+            await ctx.send("Sor bakayım orda mıyım.")
+            await ctx.message.add_reaction("❌")
 
     @commands.command()
     async def d(self, ctx, index: int):
@@ -317,8 +331,10 @@ class Music(commands.Cog):
                     break
             await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
             await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
+            await ctx.message.add_reaction('✅')
         else:
-            await ctx.send(f"Kuyrukta {index}. sırada şarkı bulunamadı.")
+            await ctx.send(f"Kuyrukta {index}. numaralı şarkı yog.")
+            await ctx.message.add_reaction("❌")
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
