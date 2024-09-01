@@ -18,4 +18,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Botu çalıştır
-CMD ["python", "bis.py"]
+CMD ["python", "biso.py"]
