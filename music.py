@@ -292,5 +292,20 @@ class Music(commands.Cog):
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
 
+    @commands.command()
+    async def d(self, ctx, index: int):
+         """Kuyruktaki belirli bir sıradaki şarkıyı siler"""
+        if 1 <= index <= len(self.user_queue):
+            song_to_remove = self.user_queue.pop(index - 1) # Kuyruktaki şarkıyı kaldır
+            for i, song in enumerate(self.queue): # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
+                if song['url'] == song_to_remove['url']:
+                    self.queue.pop(i)
+                    break
+
+            await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
+            await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
+        else:
+            await ctx.send(f"Kuyrukta {index}. sırada şarkı bulunamadı.")
+
 async def setup(bot):
     await bot.add_cog(Music(bot))
