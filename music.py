@@ -301,11 +301,10 @@ class Music(commands.Cog):
                 if song['url'] == song_to_remove['url']:
                     self.queue.pop(i)
                     break
-
-            await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
-            await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
-        else:
-            await ctx.send(f"Kuyrukta {index}. sırada şarkı bulunamadı.")
+                    await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
+                    await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
+                else:
+                    await ctx.send(f"Kuyrukta {index}. sırada şarkı bulunamadı.")
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
