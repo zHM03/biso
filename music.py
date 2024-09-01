@@ -180,31 +180,13 @@ class Music(commands.Cog):
             self.num_pages = num_pages
             self.items_per_page = 5
             self.user_queue = bot.get_cog("Music").user_queue
-            # Butonları oluştur
+
             self.prev_button = Button(label="Önceki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == 1))
             self.next_button = Button(label="Sonraki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == self.num_pages))
-            self.prev_button = Button(label="Önceki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == 1))
-            self.next_button = Button(label="Sonraki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == self.num_pages))
-            self.resume_button = Button(label="Şarkıyı Devam Ettir", style=discord.ButtonStyle.secondary)
-            self.stop_button = Button(label="Şarkıyı Durdur", style=discord.ButtonStyle.secondary)
-            self.loop_button = Button(label="Kuyruğu Döngüye Al", style=discord.ButtonStyle.secondary)
-            self.clear_button = Button(label="Kuyruğu Temizle", style=discord.ButtonStyle.secondary)
-            # Butonları oluştur
+
             self.prev_button.callback = self.prev_page
             self.next_button.callback = self.next_page
-            self.resume_button.callback = self.resume_music
-            self.stop_button.callback = self.stop_music
-            self.loop_button.callback = self.loop_queue
-            self.clear_button.callback = self.clear_queue
-            self.prev_button.callback = self.prev_page
-            self.next_button.callback = self.next_page
-            # Düğmeleri ekle
-            self.add_item(self.prev_button)
-            self.add_item(self.next_button)
-            self.add_item(self.resume_button)
-            self.add_item(self.stop_button)
-            self.add_item(self.loop_button)
-            self.add_item(self.clear_button)
+
             self.add_item(self.prev_button)
             self.add_item(self.next_button)
 
@@ -217,29 +199,6 @@ class Music(commands.Cog):
             if self.page < self.num_pages:
                 self.page += 1
                 await self.update_message(interaction)
-
-        async def resume_music(self, interaction: discord.Interaction):
-            if self.music_cog.voice_client and not self.music_cog.voice_client.is_playing():
-                self.music_cog.voice_client.resume()
-                await interaction.response.send_message("Şarkı devam ettirildi.")
-
-        async def stop_music(self, interaction: discord.Interaction):
-            if self.music_cog.voice_client:
-                self.music_cog.voice_client.stop()
-                await interaction.response.send_message("Şarkı durduruldu.")
-            else:
-                await interaction.response.send_message("Şu an çalan bir şarkı yok.")
-
-        async def loop_queue(self, interaction: discord.Interaction):
-            await interaction.response.send_message("Kuyruğu döngüye almayı desteklemiyor.")
-
-        async def clear_queue(self, interaction: discord.Interaction):
-            if self.music_cog.queue:
-                self.music_cog.queue.clear()
-                self.music_cog.user_queue.clear()
-                await interaction.response.send_message("Kuyruk temizlendi.")
-            else:
-                await interaction.response.send_message("Kuyruk zaten boş.")
 
         async def update_message(self, interaction: discord.Interaction):
             cog = self.bot.get_cog("Music")
