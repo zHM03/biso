@@ -1,3 +1,5 @@
+#şarkı çalma tamam, queue tamam, komutlar tamam
+
 import discord
 from discord.ext import commands
 from discord.ui import View, Button
@@ -188,13 +190,6 @@ class Music(commands.Cog):
             self.add_item(self.prev_button)
             self.add_item(self.next_button)
 
-            # Komut butonları ekle
-            self.add_item(Button(label="Geç", style=discord.ButtonStyle.danger, custom_id="skip"))
-            self.add_item(Button(label="Duraklat", style=discord.ButtonStyle.secondary, custom_id="pause"))
-            self.add_item(Button(label="Devam Et", style=discord.ButtonStyle.success, custom_id="resume"))
-            self.add_item(Button(label="Durdur", style=discord.ButtonStyle.danger, custom_id="stop"))
-            self.add_item(Button(label="Temizle", style=discord.ButtonStyle.secondary, custom_id="clear"))
-
         async def prev_page(self, interaction: discord.Interaction):
             if self.page > 1:
                 self.page -= 1
@@ -206,87 +201,160 @@ class Music(commands.Cog):
                 await self.update_message(interaction)
 
         async def update_message(self, interaction: discord.Interaction):
-            await self.message.delete()
-            await self.bot.get_cog("Music").send_queue(interaction.channel, page=self.page)
-
-        async def on_timeout(self):
-            await self.message.delete()
+            cog = self.bot.get_cog("Music")
+            await cog.send_queue(interaction.channel, page=self.page)
+            await interaction.response.defer()
 
     @commands.command()
-    async def add(self, ctx, *, url):
-        """Kuyruğa şarkı ekler"""
-        try:
-            ydl_opts = self.ytdl_opts.copy()
-            with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                url2 = info['formats'][0]['url']
-                title = info.get('title', 'No Title')
-                await self.play_song(ctx, url2, title)
-                await ctx.send(f"{title} kuyruğa eklendi.")
-        except Exception as e:
-            await ctx.send(f"Bir hata oluştu: {str(e)}")
+    async def p(self, ctx, *, link):
+        """YouTube veya Spotify bağlantısından şarkı ekler"""
+        if not ctx.author.voice:
+            await ctx.send("Bir sesli kanalda olmalısın!")
+            return
+
+        if self.voice_client and self.voice_client.channel != ctx.author.voice.channel:
+            await ctx.send("Müsait değilim.")
+            return
+
+        with YoutubeDL(self.ytdl_opts) as ydl:
+            try:
+                if "youtube.com/watch" in link or "youtu.be" in link:
+                    info = ydl.extract_info(link, download=False)
+                    await self.play_song(ctx, info['url'], info['title'])
+                    await ctx.message.add_reaction('✅')
+
+                elif "spotify.com/track" in link:
+                    track_id = link.split('/')[-1].split('?')[0]
+                    track_info = sp.track(track_id)
+                    track_name = track_info['name']
+                    artist_name = track_info['artists'][0]['name']
+                    search_query = f"{track_name} {artist_name}"
+                    search_query = f"ytsearch:{search_query}"
+                    info = ydl.extract_info(search_query, download=False)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                    await self.play_song(ctx, info['url'], info['title'])
+                    await ctx.message.add_reaction('✅')
+
+                elif "spotify.com/playlist" in link:
+                    playlist_id = link.split('/')[-1].split('?')[0]
+                    playlist_info = sp.playlist(playlist_id)
+                    tracks_count = len(playlist_info['tracks']['items'])
+                    success_count = 0
+                    for item in playlist_info['tracks']['items']:
+                        track = item['track']
+                        track_name = track['name']
+                        artist_name = track['artists'][0]['name']
+                        search_query = f"{track_name} {artist_name}"
+                        search_query = f"ytsearch:{search_query}"
+                        info = ydl.extract_info(search_query, download=False)
+                        if 'entries' in info and len(info['entries']) > 0:
+                            info = info['entries'][0]
+                        await self.play_song(ctx, info['url'], info['title'])
+                        success_count += 1
+                    if  success_count == tracks_count:
+                        await ctx.message.add_reaction("✅")
+                    else:
+                        await ctx.message.add_reaction("❌")
+
+                
+
+                else:
+                    search_query = f"ytsearch:{link}"
+                    info = ydl.extract_info(search_query, download=False)
+                    if 'entries' in info and len(info['entries']) > 0:
+                        info = info['entries'][0]
+                        await self.play_song(ctx, info['url'], info['title'])
+                        await ctx.message.add_reaction('✅')
+                    else:
+                        await ctx.message.add_reaction('❌')
+
+            except Exception as e:
+                print(f"Error extracting audio: {e}")
+                await ctx.message.add_reaction('❌')
 
     @commands.command()
-    async def queue(self, ctx):
-        """Kuyruğu gösterir"""
-        await self.send_queue(ctx)
-
-    @commands.command()
-    async def skip(self, ctx):
-        """Şarkıyı geçer"""
+    async def n(self, ctx):
+        """Çalınan şarkıyı atlar"""
         if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.stop()
-            await self.play_next()
-            await ctx.send("Şarkı geçildi.")
-        else:
-            await ctx.send("Şu anda çalan bir şarkı yok.")
-
-    @commands.command()
-    async def stop(self, ctx):
-        """Botu durdurur ve kanaldan ayrılır"""
-        if self.voice_client:
-            self.queue.clear()
-            self.user_queue.clear()
-            if self.voice_client.is_playing():
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
                 self.voice_client.stop()
-            await self.voice_client.disconnect()
-            self.voice_client = None
-            await ctx.send("Bot durduruldu ve kanaldan ayrıldı.")
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Sen ne karışıyon!.")
+                await ctx.message.add_reaction("❌")
+                # Mesaj göndermeyi kaldırdık
         else:
-            await ctx.send("Bot şu anda bir sesli kanalda değil.")
+            await ctx.send("Neyi geçeyim gardeş neyiii?!?!.")
+            await ctx.message.add_reaction("❌")
 
     @commands.command()
-    async def pause(self, ctx):
-        """Çalmayı duraklatır"""
+    async def s(self, ctx):
+        """Şarkıyı duraklatır"""
         if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.pause()
-            await ctx.send("Şarkı duraklatıldı.")
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                self.voice_client.pause()
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Karışma yav.")
+                await ctx.message.add_reaction("❌")
         else:
-            await ctx.send("Şu anda çalan bir şarkı yok.")
+            await ctx.send("Sor bakayım şarkı var mı.")
+            await ctx.message.add_reaction("❌")
 
     @commands.command()
-    async def resume(self, ctx):
-        """Çalmayı devam ettirir"""
+    async def r(self, ctx):
+        """Şarkıyı devam ettirir"""
         if self.voice_client and self.voice_client.is_paused():
-            self.voice_client.resume()
-            await ctx.send("Şarkı devam ettirildi.")
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                self.voice_client.resume()
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Çok mu istiyon.")
+                await ctx.message.add_reaction("❌")
         else:
-            await ctx.send("Şarkı devam ettirilemiyor.")
+            await ctx.send("Neyi devam edeyim neyiii?!?!.")
+            await ctx.message.add_reaction("❌")
 
     @commands.command()
-    async def clear(self, ctx):
-        """Kuyruğu temizler"""
-        self.queue.clear()
-        self.user_queue.clear()
-        if self.voice_client and self.voice_client.is_playing():
-            self.voice_client.stop()
-        await ctx.send("Kuyruk temizlendi.")
+    async def l(self, ctx):
+        """Botu sesli kanaldan çıkarır"""
+        if self.voice_client and self.voice_client.is_connected():
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                await ctx.send("Allah'a emanet.")
+                await ctx.message.add_reaction('✅')
+                if self.voice_client.is_playing():
+                    self.voice_client.stop()
+                await self.voice_client.disconnect()
+                self.queue.clear()
+                self.user_queue.clear()
+                self.is_playing = False
+            else:
+                await ctx.send("Yiyosa gel!.")
+                await ctx.message.add_reaction("❌")
+        else:
+            await ctx.send("yokum ki.")
+            await ctx.message.add_reaction("❌")
 
-bot = commands.Bot(command_prefix='!')
-
-@bot.event
-async def on_ready():
-    print(f'Bot olarak giriş yapıldı: {bot.user.name}')
-
-bot.add_cog(Music(bot))
-bot.run(os.getenv('DISCORD_TOKEN'))
+    @commands.command()
+    async def d(self, ctx, index: int):
+        """Kuyruktaki belirli bir sıradaki şarkıyı siler"""
+        if 1 <= index <= len(self.user_queue):
+            if ctx.author.voice and ctx.author.voice.channel == self.voice_client.channel:
+                song_to_remove = self.user_queue.pop(index - 1)  # Kuyruktaki şarkıyı kaldır
+                for i, song in enumerate(self.queue):  # Kod kuyruğundaki şarkıyı da kaldır (eğer varsa)
+                    if song['url'] == song_to_remove['url']:
+                        self.queue.pop(i)
+                        break
+                await ctx.send(f"{index}. sıradaki şarkı kuyruktan kaldırıldı.")
+                await self.send_queue(ctx)  # Kuyruk güncellenmiş haliyle yeniden gönderilir
+                await ctx.message.add_reaction('✅')
+            else:
+                await ctx.send("Tanıyamadım, kimdiniz")
+                await ctx.message.add_reaction("❌")
+        else:
+            await ctx.send(f"Kuyrukta {index}. numaralı şarkı yog.")
+            await ctx.message.add_reaction("❌")
+            
+async def setup(bot):
+    await bot.add_cog(Music(bot))
