@@ -262,10 +262,10 @@ class Music(commands.Cog):
                     info = ydl.extract_info(search_query, download=False)
                     if 'entries' in info and len(info['entries']) > 0:
                         info = info['entries'][0]
-                    await self.play_song(ctx, info['url'], info['title'])
-                    await ctx.message.add_reaction('✅')
-                else:
-                    await ctx.message.add_reaction('❌')
+                        await self.play_song(ctx, info['url'], info['title'])
+                        await ctx.message.add_reaction('✅')
+                    else:
+                        await ctx.message.add_reaction('❌')
 
             except Exception as e:
                 print(f"Error extracting audio: {e}")
