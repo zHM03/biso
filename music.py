@@ -190,6 +190,12 @@ class Music(commands.Cog):
             self.add_item(self.prev_button)
             self.add_item(self.next_button)
 
+            self.add_item(Button(label="Geç", style=discord.ButtonStyle.danger, custom_id="skip"))
+            self.add_item(Button(label="Duraklat", style=discord.ButtonStyle.secondary, custom_id="pause"))
+            self.add_item(Button(label="Devam Et", style=discord.ButtonStyle.success, custom_id="resume"))
+            self.add_item(Button(label="Durdur", style=discord.ButtonStyle.danger, custom_id="stop"))
+            self.add_item(Button(label="Temizle", style=discord.ButtonStyle.secondary, custom_id="clear"))
+
         async def prev_page(self, interaction: discord.Interaction):
             if self.page > 1:
                 self.page -= 1
@@ -201,9 +207,11 @@ class Music(commands.Cog):
                 await self.update_message(interaction)
 
         async def update_message(self, interaction: discord.Interaction):
-            cog = self.bot.get_cog("Music")
-            await cog.send_queue(interaction.channel, page=self.page)
-            await interaction.response.defer()
+            await self.message.delete()
+            await self.bot.get_cog("Music").send_queue(interaction.channel, page=self.page)
+
+        async def on_timeout(self):
+            await self.message.delete()
 
     @commands.command()
     async def p(self, ctx, *, link):
