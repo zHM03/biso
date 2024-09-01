@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 import io
 from PIL import Image, ImageDraw, ImageFont
+import asyncio
 
 load_dotenv()
 
@@ -20,8 +21,8 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.voice_client = None
-        self.queue = []
-        self.completed = []  # Çalınan şarkılar için liste
+        self.queue = []  # Kodun yönettiği ana kuyruk
+        self.user_queue = []  # Kullanıcının gördüğü kuyruk
         self.is_playing = False
         self.items_per_page = 5
         self.ytdl_opts = {
@@ -38,18 +39,17 @@ class Music(commands.Cog):
         }
         self.last_message = None
 
-
     async def play_song(self, ctx, audio_url, song_title):
-        """Şarkıyı kuyruğa ekler ve çalmaya başlar"""
+        """Şarkıyı hem kod kuyruğuna hem de kullanıcı kuyruğuna ekler ve çalmaya başlar"""
         song = {
             'url': audio_url,
             'title': song_title,
             'channel_id': ctx.channel.id
         }
-        # Şarkıyı kuyruğa eklemeden önce, tamamlanmış listede aynı URL'ye sahip bir şarkı olup olmadığını kontrol et
-        if not any(s['url'] == song['url'] for s in self.completed):
-            self.queue.append(song)
-        await self.send_queue(ctx)  # Kuyruğu güncelle
+        # Şarkıyı hem kod kuyruğuna hem de kullanıcı kuyruğuna ekle
+        self.queue.append(song)
+        self.user_queue.append(song)
+        await self.send_queue(ctx)  # Kullanıcı kuyruğunu güncelle
 
         if not self.is_playing:
             if not self.voice_client or not self.voice_client.is_connected():
@@ -58,7 +58,7 @@ class Music(commands.Cog):
 
     async def play_next(self):
         """Bir sonraki şarkıyı çal"""
-        if len(self.queue) > 0:  # Kuyrukta şarkı varsa
+        if len(self.queue) > 0:  # Kod kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
 
             # Kuyruğun ilk şarkısını seç
@@ -72,9 +72,9 @@ class Music(commands.Cog):
             try:
                 # Ses dosyasını oynat
                 self.voice_client.play(discord.FFmpegPCMAudio(song['url'], **ffmpeg_options), after=lambda e: self.bot.loop.create_task(self.play_next()))
-                # Şarkıyı tamamlanmış listeye ekle
-                self.completed.append(song)
-                # Kuyruktan şarkıyı geçici olarak kaldır
+                # Şarkıyı kullanıcı kuyruğundan kaldır
+                self.user_queue = [s for s in self.user_queue if s['url'] != song['url']]
+                # Kod kuyruğundan şarkıyı geçici olarak kaldır
                 self.queue.pop(0)
             except Exception as e:  # Hata durumunda çalışacak blok
                 print(f'Error: {str(e)}')
@@ -88,13 +88,12 @@ class Music(commands.Cog):
                 # Kuyruk hala boşsa ve sesli kanalda kimse yoksa ayrıl
                 if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
-                    self.queue.clear()  # Kuyruğu temizle
-                    self.completed.clear()  # Tamamlanmış listeyi temizle
-
+                    self.queue.clear()  # Kod kuyruğunu temizle
+                    self.user_queue.clear()  # Kullanıcı kuyruğunu temizle
 
     async def send_queue(self, ctx, page=1):
-        """Kuyruğu görsel olarak gönderir"""
-        num_pages = (len(self.queue) + self.items_per_page - 1) // self.items_per_page
+        """Kullanıcının kuyruğunu görsel olarak gönderir"""
+        num_pages = (len(self.user_queue) + self.items_per_page - 1) // self.items_per_page
 
         background_path = os.getenv('BACKGROUND_IMAGE_PATH', 'assets/chopper.jpg')
         background = Image.open(background_path).convert('RGBA')
@@ -126,11 +125,11 @@ class Music(commands.Cog):
         draw.text((songs_text_x, songs_text_y), songs_text, font=title_font, fill=(255, 255, 255))
 
         start_index = (page - 1) * self.items_per_page
-        end_index = min(start_index + self.items_per_page, len(self.queue))
+        end_index = min(start_index + self.items_per_page, len(self.user_queue))
 
         current_y = songs_text_y + songs_text_height + 60
 
-        for index, song in enumerate(self.queue[start_index:end_index]):
+        for index, song in enumerate(self.user_queue[start_index:end_index]):
             song_text = f"{start_index + index + 1}. {song['title']}"
 
             # Metin boyutunu hesapla
@@ -139,7 +138,7 @@ class Music(commands.Cog):
             song_text_height = text_bbox[3] - text_bbox[1]
             table_width = song_text_width + 40
             table_height = song_text_height + 20
-            table_x = + 20
+            table_x = 20
             table_y = current_y
 
             # Şeffaf tabloyu oluştur
@@ -181,7 +180,7 @@ class Music(commands.Cog):
             self.page = page
             self.num_pages = num_pages
             self.items_per_page = 5
-            self.queue = bot.get_cog("Music").queue
+            self.user_queue = bot.get_cog("Music").user_queue
 
             self.prev_button = Button(label="Önceki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == 1))
             self.next_button = Button(label="Sonraki Sayfa", style=discord.ButtonStyle.primary, disabled=(self.page == self.num_pages))
@@ -291,6 +290,7 @@ class Music(commands.Cog):
                 self.voice_client.stop() 
             await self.voice_client.disconnect()
             self.queue.clear()
+            self.user_queue.clear()
             self.is_playing = False
         else:
             await ctx.send("Bot bir sesli kanalda değil.")
