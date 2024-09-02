@@ -135,6 +135,8 @@ class Music(commands.Cog):
                 status_image = "completed.png"
                 
             status_img = Image.open(f"assets/{status_image}").convert("RGBA")
+            emoji_size = (50, 50)
+            status_img = status_img.resize(emoji_size, Image.ANTIALIAS)
             song_text = f"{start_index + index + 1}. {song['title']}"
 
             # Metin boyutunu hesapla
@@ -147,7 +149,7 @@ class Music(commands.Cog):
             table_y = current_y
 
             # Şeffaf tabloyu oluştur
-            table = Image.new('RGBA', (table_width, table_height), (0, 0, 0, 150))
+            table = Image.new('RGBA', (table_width + emoji_size[0] + 10, table_height), (0, 0, 0, 150))
             draw_table = ImageDraw.Draw(table)
             shadow_offset = 2
             shadow_color = (0, 0, 0, 128)
