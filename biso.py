@@ -23,7 +23,29 @@ async def on_ready():
     try:
         await bot.load_extension('music')
     except Exception as e:
-        print(f"Extension yüklenirken hata oluştu: {e}")        
+        print(f"Extension yüklenirken hata oluştu: {e}")
+
+@bot.event
+async def on_interaction(interaction: discord.Interaction):
+    if interaction.type == discord.InteractionType.component:
+        if interaction.data['custom_id'] == 'skip':
+            ctx = await bot.get_context(interaction.message)
+            await ctx.invoke(bot.get_command('skip'))
+        elif interaction.data['custom_id'] == 'pause':
+            ctx = await bot.get_context(interaction.message)
+            await ctx.invoke(bot.get_command('pause'))
+        elif interaction.data['custom_id'] == 'resume':
+            ctx = await bot.get_context(interaction.message)
+            await ctx.invoke(bot.get_command('resume'))
+        elif interaction.data['custom_id'] == 'stop':
+            ctx = await bot.get_context(interaction.message)
+            await ctx.invoke(bot.get_command('stop'))
+        elif interaction.data['custom_id'] == 'clear':
+            ctx = await bot.get_context(interaction.message)
+            await ctx.invoke(bot.get_command('clear'))
+
+
+        
         
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')

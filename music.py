@@ -1,3 +1,5 @@
+#şarkı çalma tamam, queue tamam, komutlar tamam,
+
 import discord
 from discord.ext import commands
 from discord.ui import View, Button
