@@ -46,13 +46,14 @@ class Music(commands.Cog):
         song = {
             'url': audio_url,
             'title': song_title,
-            'channel_id': ctx.channel.id
+            'channel_id': ctx.channel.id,
+            'status': 'pending'  # Varsayılan durum
         }
         # Şarkıyı hem kod kuyruğuna hem de kullanıcı kuyruğuna ekle
         self.queue.append(song)
         self.user_queue.append(song)
         await self.send_queue(ctx)  # Kullanıcı kuyruğunu güncelle
-
+    
         if not self.is_playing:
             if not self.voice_client or not self.voice_client.is_connected():
                 self.voice_client = await ctx.author.voice.channel.connect()
@@ -65,6 +66,7 @@ class Music(commands.Cog):
 
             # Kuyruğun ilk şarkısını seç
             song = self.queue[0]
+            song['status'] = 'playing'  # Durumu 'playing' olarak ayarla
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
