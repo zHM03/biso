@@ -1,3 +1,5 @@
+#şarkı çalma tamam, queue tamam, komutlar tamam,
+
 import discord
 from discord.ext import commands
 from discord.ui import View, Button
@@ -44,8 +46,7 @@ class Music(commands.Cog):
         song = {
             'url': audio_url,
             'title': song_title,
-            'channel_id': ctx.channel.id,
-            'status': 'pending'  # Başlangıç durumu
+            'channel_id': ctx.channel.id
         }
         # Şarkıyı hem kod kuyruğuna hem de kullanıcı kuyruğuna ekle
         self.queue.append(song)
@@ -61,9 +62,9 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kod kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-            song = self.queue[0] # Kuyruğun ilk şarkısını seç
-            song['status'] = 'playing'  # Şarkı çalmaya başladı
-            self.currently_playing = song
+
+            # Kuyruğun ilk şarkısını seç
+            song = self.queue[0]
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -83,104 +84,109 @@ class Music(commands.Cog):
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             if self.voice_client and self.voice_client.is_connected():
                 # Şarkı bitiminden sonra 5 saniye bekle
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
                 # Kuyruk hala boşsa ve sesli kanalda kimse yoksa ayrıl
                 if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
                     self.user_queue.clear()  # Kullanıcı kuyruğunu temizle
 
-    async def send_queue(self, ctx, page=1):
-        """Kullanıcının kuyruğunu görsel olarak gönderir"""
-        num_pages = (len(self.user_queue) + self.items_per_page - 1) // self.items_per_page
+async def send_queue(self, ctx, page=1):
+    """Kullanıcının kuyruğunu görsel olarak gönderir"""
+    num_pages = (len(self.user_queue) + self.items_per_page - 1) // self.items_per_page
 
-        background_path = os.getenv('BACKGROUND_IMAGE_PATH', 'assets/chopper.jpg')
-        background = Image.open(background_path).convert('RGBA')
-        img_width, img_height = background.size
+    background_path = os.getenv('BACKGROUND_IMAGE_PATH', 'assets/chopper.jpg')
+    background = Image.open(background_path).convert('RGBA')
+    img_width, img_height = background.size
 
-        base_width = 800
-        width_percent = base_width / float(img_width)
-        height_size = int(float(img_height) * width_percent)
-        background = background.resize((base_width, height_size), Image.LANCZOS)
+    base_width = 800
+    width_percent = base_width / float(img_width)
+    height_size = int(float(img_height) * width_percent)
+    background = background.resize((base_width, height_size), Image.LANCZOS)
 
-        overlay = Image.new('RGBA', background.size, (0, 0, 0, 150))
-        background = Image.alpha_composite(background, overlay)
+    overlay = Image.new('RGBA', background.size, (0, 0, 0, 150))
+    background = Image.alpha_composite(background, overlay)
 
+    try:
+        title_font = ImageFont.truetype("assets/pirata.ttf", 50)
+        song_font = ImageFont.truetype("assets/pirata.ttf", 30)
+    except IOError:
+        title_font = ImageFont.load_default()
+        song_font = ImageFont.load_default()
+
+    draw = ImageDraw.Draw(background)
+
+    songs_text = "SONGS\n"
+    text_bbox = draw.textbbox((0, 0), songs_text, font=title_font)
+    songs_text_width = text_bbox[2] - text_bbox[0]
+    songs_text_height = text_bbox[3] - text_bbox[1]
+    songs_text_x = (background.width - songs_text_width) // 2
+    songs_text_y = 10
+    draw.text((songs_text_x, songs_text_y), songs_text, font=title_font, fill=(255, 255, 255))
+
+    start_index = (page - 1) * self.items_per_page
+    end_index = min(start_index + self.items_per_page, len(self.user_queue))
+
+    current_y = songs_text_y + songs_text_height + 60
+
+    emoji_size = (50, 50)  # Emoji boyutu
+    for index, song in enumerate(self.user_queue[start_index:end_index]):
+        # Durumuna göre emoji resmi seç
+        status_image = "pending.png"  # Varsayılan durum resmi
+        if song.get('status') == 'playing':
+            status_image = "playing.png"
+        elif song.get('status') == 'completed':
+            status_image = "completed.png"
+        
+        # Emoji resmini aç
+        status_img = Image.open(f"assets/{status_image}").convert("RGBA")
+
+        # Emoji boyutunu ayarla
+        status_img = status_img.resize(emoji_size, Image.ANTIALIAS)
+
+        song_text = f"{start_index + index + 1}. {song['title']}"
+
+        # Metin boyutunu hesapla
+        text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
+        song_text_width = text_bbox[2] - text_bbox[0]
+        song_text_height = text_bbox[3] - text_bbox[1]
+        table_width = song_text_width + 20
+        table_height = song_text_height + 20
+        table_x = 20
+        table_y = current_y
+
+        # Şeffaf tabloyu oluştur
+        table = Image.new('RGBA', (table_width + emoji_size[0], table_height), (0, 0, 0, 150))
+        draw_table = ImageDraw.Draw(table)
+        shadow_offset = 2
+        shadow_color = (0, 0, 0, 128)
+        draw_table.text((10 + shadow_offset + emoji_size[0] + 5, 10 + shadow_offset), song_text, font=song_font, fill=shadow_color)
+        draw_table.text((10 + emoji_size[0] + 5, 10), song_text, font=song_font, fill=(255, 255, 255))
+
+        # Tabloyu arka plana ekle
+        background.paste(table, (table_x + emoji_size[0], table_y), table)
+
+        # Emoji resmini tablonun soluna ekle
+        background.paste(status_img, (table_x, table_y), status_img)
+
+        current_y += table_height + 10
+
+    buffer = io.BytesIO()
+    background.save(buffer, format='PNG', optimize=True, quality=30)
+    buffer.seek(0)
+
+    if self.last_message:
         try:
-            title_font = ImageFont.truetype("assets/pirata.ttf", 50)
-            song_font = ImageFont.truetype("assets/pirata.ttf", 30)
-        except IOError:
-            title_font = ImageFont.load_default()
-            song_font = ImageFont.load_default()
+            await self.last_message.delete()
+        except discord.NotFound:
+            pass
 
-        draw = ImageDraw.Draw(background)
+    new_message = await ctx.send(file=discord.File(fp=buffer, filename='queue.png'))
 
-        songs_text = "SONGS\n"
-        text_bbox = draw.textbbox((0, 0), songs_text, font=title_font)
-        songs_text_width = text_bbox[2] - text_bbox[0]
-        songs_text_height = text_bbox[3] - text_bbox[1]
-        songs_text_x = (background.width - songs_text_width) // 2
-        songs_text_y = 10  # Yukarıdan 10 piksel aşağıda
-        draw.text((songs_text_x, songs_text_y), songs_text, font=title_font, fill=(255, 255, 255))
+    self.last_message = new_message
 
-        start_index = (page - 1) * self.items_per_page
-        end_index = min(start_index + self.items_per_page, len(self.user_queue))
-
-        current_y = songs_text_y + songs_text_height + 60
-
-        emoji_size = (30, 30)  # Burada doğru boyutu belirleyin
-
-        for index, song in enumerate(self.user_queue[start_index:end_index]):
-            status_image = "pending.png"  # Varsayılan durum resmi
-            if song['status'] == 'playing':
-                status_image = "playing.png"
-            elif song['status'] == 'completed':
-                status_image = "completed.png"
-                
-            status_img = Image.open(f"assets/{status_image}").convert("RGBA")
-            status_img = status_img.resize(emoji_size, Image.ANTIALIAS)  # Emoji boyutunu küçült
-
-            song_text = f"{start_index + index + 1}. {song['title']}"
-
-            # Metin boyutunu hesapla
-            text_bbox = draw.textbbox((0, 0), song_text, font=song_font)
-            song_text_width = text_bbox[2] - text_bbox[0]
-            song_text_height = text_bbox[3] - text_bbox[1]
-            table_width = song_text_width + 40
-            table_height = song_text_height + 20
-            table_x = 20
-            table_y = current_y
-
-            # Şeffaf tabloyu oluştur
-            table = Image.new('RGBA', (table_width + emoji_size[0] + 10, table_height), (0, 0, 0, 150))
-            draw_table = ImageDraw.Draw(table)
-            shadow_offset = 2
-            shadow_color = (0, 0, 0, 128)
-            draw_table.text((10 + shadow_offset, 10 + shadow_offset), song_text, font=song_font, fill=shadow_color)
-            draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
-
-            # Tabloyu arka plana ekle
-            background.paste(table, (table_x, table_y), table)
-            background.paste(status_img, (table_x, table_y), status_img)
-
-            current_y += table_height + 10
-
-        buffer = io.BytesIO()
-        background.save(buffer, format='PNG', optimize=True, quality=30)
-        buffer.seek(0)
-
-        if self.last_message:
-            try:
-                await self.last_message.delete()
-            except discord.NotFound:
-                pass
-
-        new_message = await ctx.send(file=discord.File(fp=buffer, filename='queue.png'))
-
-        self.last_message = new_message
-
-        # Butonları oluştur ve görseli gönder
-        view = self.QueueView(self.bot, new_message, page=page, num_pages=num_pages)
-        await new_message.edit(view=view)
+    # Butonları oluştur ve görseli gönder
+    view = self.QueueView(self.bot, new_message, page=page, num_pages=num_pages)
+    await new_message.edit(view=view)
 
     class QueueView(View):
         def __init__(self, bot, message, page=1, num_pages=1):
