@@ -135,8 +135,6 @@ class Music(commands.Cog):
                 status_image = "completed.png"
                 
             status_img = Image.open(f"assets/{status_image}").convert("RGBA")
-            emoji_size = (50, 50)
-            status_img = status_img.resize(emoji_size, Image.ANTIALIAS)
             song_text = f"{start_index + index + 1}. {song['title']}"
 
             # Metin boyutunu hesapla
