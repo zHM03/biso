@@ -128,7 +128,6 @@ class Music(commands.Cog):
     
         current_y = songs_text_y + songs_text_height + 60
     
-        emoji_size = (50, 50)  # Emoji boyutu
         for index, song in enumerate(self.user_queue[start_index:end_index]):
             # Durumuna göre emoji resmi seç
             status_image = "pending.png"  # Varsayılan durum resmi
@@ -136,12 +135,12 @@ class Music(commands.Cog):
                 status_image = "playing.png"
             elif song.get('status') == 'completed':
                 status_image = "completed.png"
-            
+    
             # Emoji resmini aç
             status_img = Image.open(f"assets/{status_image}").convert("RGBA")
-    
-            # Emoji boyutunu ayarla
-            status_img = status_img.resize(emoji_size, Image.ANTIALIAS)
+            
+            # Emoji boyutunu ayarlamayı kaldırdık
+            emoji_size = status_img.size
     
             song_text = f"{start_index + index + 1}. {song['title']}"
     
@@ -153,6 +152,41 @@ class Music(commands.Cog):
             table_height = song_text_height + 20
             table_x = 20
             table_y = current_y
+    
+            # Şeffaf tabloyu oluştur
+            table = Image.new('RGBA', (table_width + emoji_size[0], table_height), (0, 0, 0, 150))
+            draw_table = ImageDraw.Draw(table)
+            shadow_offset = 2
+            shadow_color = (0, 0, 0, 128)
+            draw_table.text((10 + shadow_offset + emoji_size[0] + 5, 10 + shadow_offset), song_text, font=song_font, fill=shadow_color)
+            draw_table.text((10 + emoji_size[0] + 5, 10), song_text, font=song_font, fill=(255, 255, 255))
+    
+            # Tabloyu arka plana ekle
+            background.paste(table, (table_x + emoji_size[0], table_y), table)
+    
+            # Emoji resmini tablonun soluna ekle
+            background.paste(status_img, (table_x, table_y), status_img)
+    
+            current_y += table_height + 10
+    
+        buffer = io.BytesIO()
+        background.save(buffer, format='PNG', optimize=True, quality=30)
+        buffer.seek(0)
+    
+        if self.last_message:
+            try:
+                await self.last_message.delete()
+            except discord.NotFound:
+                pass
+    
+        new_message = await ctx.send(file=discord.File(fp=buffer, filename='queue.png'))
+    
+        self.last_message = new_message
+    
+        # Butonları oluştur ve görseli gönder
+        view = self.QueueView(self.bot, new_message, page=page, num_pages=num_pages)
+        await new_message.edit(view=view)
+
     
             # Şeffaf tabloyu oluştur
             table = Image.new('RGBA', (table_width + emoji_size[0], table_height), (0, 0, 0, 150))
