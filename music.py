@@ -44,7 +44,8 @@ class Music(commands.Cog):
         song = {
             'url': audio_url,
             'title': song_title,
-            'channel_id': ctx.channel.id
+            'channel_id': ctx.channel.id,
+            'status': 'pending'  # Başlangıç durumu
         }
         # Şarkıyı hem kod kuyruğuna hem de kullanıcı kuyruğuna ekle
         self.queue.append(song)
@@ -60,9 +61,9 @@ class Music(commands.Cog):
         """Bir sonraki şarkıyı çal"""
         if len(self.queue) > 0:  # Kod kuyrukta şarkı varsa
             self.is_playing = True  # Oynatma durumunu aktif olarak ayarla
-
-            # Kuyruğun ilk şarkısını seç
-            song = self.queue[0]
+            song = self.queue[0] # Kuyruğun ilk şarkısını seç
+            song['status'] = 'playing'  # Şarkı çalmaya başladı
+            self.currently_playing = song
 
             ffmpeg_options = {
                 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -82,7 +83,7 @@ class Music(commands.Cog):
             self.is_playing = False  # Kuyruk boşsa oynatmayı durdur
             if self.voice_client and self.voice_client.is_connected():
                 # Şarkı bitiminden sonra 5 saniye bekle
-                await asyncio.sleep(5)
+                await asyncio.sleep(1)
                 # Kuyruk hala boşsa ve sesli kanalda kimse yoksa ayrıl
                 if len(self.queue) == 0 and not self.voice_client.is_playing():
                     await self.voice_client.disconnect()
@@ -127,6 +128,13 @@ class Music(commands.Cog):
         current_y = songs_text_y + songs_text_height + 60
 
         for index, song in enumerate(self.user_queue[start_index:end_index]):
+            status_image = "pending.png"  # Varsayılan durum resmi
+            if song['status'] == 'playing':
+                status_image = "playing.png"
+            elif song['status'] == 'completed':
+                status_image = "completed.png"
+                
+            status_img = Image.open(f"assets/{status_image}").convert("RGBA")
             song_text = f"{start_index + index + 1}. {song['title']}"
 
             # Metin boyutunu hesapla
@@ -147,7 +155,8 @@ class Music(commands.Cog):
             draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
 
             # Tabloyu arka plana ekle
-            background.paste(table, (table_x, table_y), table)
+            background.paste(table, (table_x + 40, table_y), table)
+            background.paste(status_img, (table_x, table_y), status_img)
 
             current_y += table_height + 10
 
