@@ -127,6 +127,8 @@ class Music(commands.Cog):
 
         current_y = songs_text_y + songs_text_height + 60
 
+        emoji_size = (30, 30)  # Burada doğru boyutu belirleyin
+
         for index, song in enumerate(self.user_queue[start_index:end_index]):
             status_image = "pending.png"  # Varsayılan durum resmi
             if song['status'] == 'playing':
@@ -135,6 +137,8 @@ class Music(commands.Cog):
                 status_image = "completed.png"
                 
             status_img = Image.open(f"assets/{status_image}").convert("RGBA")
+            status_img = status_img.resize(emoji_size, Image.ANTIALIAS)  # Emoji boyutunu küçült
+
             song_text = f"{start_index + index + 1}. {song['title']}"
 
             # Metin boyutunu hesapla
@@ -155,7 +159,7 @@ class Music(commands.Cog):
             draw_table.text((10, 10), song_text, font=song_font, fill=(255, 255, 255))
 
             # Tabloyu arka plana ekle
-            background.paste(table, (table_x + 40, table_y), table)
+            background.paste(table, (table_x, table_y), table)
             background.paste(status_img, (table_x, table_y), status_img)
 
             current_y += table_height + 10
