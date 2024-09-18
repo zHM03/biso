@@ -3,9 +3,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 class Visualizer:
     def __init__(self):
-        self.background_path = 'C:/Users/Hisham/Desktop/Projeler/Upgraded music bot/assets/chopper.jpg'
-        self.title_font_path = 'C:/Users/Hisham/Desktop/Projeler/Upgraded music bot/assets/pirata.ttf'
-        self.song_font_path = 'C:/Users/Hisham/Desktop/Projeler/Upgraded music bot/assets/pirata.ttf'
+        self.background_path = 'assets/chopper.jpg'
+        self.title_font_path = 'assets/pirata.ttf'
+        self.song_font_path = 'assets/pirata.ttf'
         self.items_per_page = 5
 
     async def generate_queue_image(self, user_queue, page=1):
@@ -38,7 +38,7 @@ class Visualizer:
             elif song.get('status') == 'completed':
                 status_image = "completed.png"
 
-            status_img = Image.open(f"C:/Users/Hisham/Desktop/Projeler/Upgraded music bot/assets/{status_image}").convert("RGBA")
+            status_img = Image.open(f"assets/{status_image}").convert("RGBA")
             emoji_size = status_img.size
 
             song_text = f"{start_index + index + 1}. {song['title']}"
