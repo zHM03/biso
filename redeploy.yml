@@ -14,5 +14,5 @@ jobs:
 
       - name: Trigger redeploy on Railway
         run: |
-          curl -X POST https://railway.app/project/YOUR_PROJECT_ID/deploy \
+          curl -X POST https://railway.app/project/703b20f7-5928-4c3e-90c4-5c2fc655a015/deploy \
           -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}"
