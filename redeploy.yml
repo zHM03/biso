@@ -3,7 +3,7 @@ name: Redeploy on Schedule
 on:
   schedule:
     # Her gün sabah saat 03:00'te redeploy yapar
-    - cron: "0 14 * * *"
+    - cron: "2 14 * * *"
 
 jobs:
   redeploy:
